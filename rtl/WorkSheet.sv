@@ -30,6 +30,8 @@ module WorkSheet #(
     reg [$clog2(P_INSTRUCTION_NUM)-1:0] totalInstrCount;
     reg IDEL;
 
+    reg [31:0]  oWorkSheetDataReg;
+
     integer i;
     always @(posedge clk or negedge nRst) begin
         if (!nRst) begin
@@ -54,7 +56,16 @@ module WorkSheet #(
         end
     end
 
-    assign oWorkSheetData=r_Instruction[iReadAddr];
+    always_ff @(posedge clk or negedge nRst) begin
+        if (!nRst) begin
+            oWorkSheetDataReg<=0;
+        end
+        else begin
+            oWorkSheetDataReg<=r_Instruction[iReadAddr];
+        end
+    end
+
+    assign oWorkSheetData=oWorkSheetDataReg;
 
     always @(posedge clk or negedge nRst) begin
         if (!nRst) begin

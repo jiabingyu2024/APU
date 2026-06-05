@@ -19,6 +19,7 @@ module SIMD #(
 );
   reg [P_COMPAREWIDTH-1:0] SIMD_Reg[P_TOTAL64BN-1:0][P_CHANNELS-1:0];
   reg [P_CHANNELS-1:0] SIMD_Temp;
+  reg [P_COMPAREWIDTH-1:0]    oReadDataReg;
   //   reg [P_COMPAREWIDTH-2:0] compare;
   always @(posedge clk or negedge nRst) begin
     if (!nRst) begin
@@ -39,5 +40,15 @@ module SIMD #(
       end
     end
   endgenerate
-  assign oReadData = SIMD_Reg[iAddr][iChannel];
+
+  always_ff @(posedge clk or negedge nRst) begin
+    if (!nRst) begin
+      oReadDataReg <= 0;
+    end else begin
+      oReadDataReg <= SIMD_Reg[iAddr][iChannel];
+    end
+  end
+  assign oReadData = oReadDataReg;
+
+
 endmodule

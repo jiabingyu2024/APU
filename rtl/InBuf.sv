@@ -8,10 +8,39 @@ module InBuf #(
     input  logic [P_BINDWIDTH-1:0]   iWriteDataB,
     input  logic                     iSelect,
     input  logic                     nCe,
-    output logic [P_BINDWIDTH-1:0]   oInData
+    output logic [P_BINDWIDTH-1:0]   oInData,
+
+    input  logic                     regWe,
+    input  logic                     regSelect
 );
 
   logic [P_BINDWIDTH-1:0] rBuf;
+  logic [P_BINDWIDTH-1:0] rBufReg [1:0];
+  logic                   regWeReg ;
+  logic                   regSelectReg;
+
+  always_ff @(posedge clk or negedge nRst) begin
+    if (!nRst) begin
+      regWeReg <= 1'b0;
+      regSelectReg <= 1'b0;
+    end else begin
+      regWeReg <= regWe;
+      regSelectReg <= regSelect;
+    end
+  end
+  always_ff @(posedge clk or negedge nRst) begin
+    if (!nRst) begin
+      rBufReg[0] <= '0;
+      rBufReg[1] <= '0;
+    end else begin
+      if (regWeReg == 1'b1 && regWe) begin
+        rBufReg[1] <= iWriteDataA;
+      end
+      else if (regWe) begin
+        rBufReg[0] <= iWriteDataA;
+      end
+    end
+  end
   // always_ff @(posedge clk or negedge nRst) begin
   //   if (!nRst) begin
   //     rBuf <= '0;
@@ -31,7 +60,13 @@ module InBuf #(
     if (!nRst) begin
       rBuf <= '0;
     end else if (!nWe) begin
-      if (!iSelect) begin
+      if (regSelectReg == 1'b1 && regSelect == 1'b1) begin
+        rBuf <= rBufReg[1];
+      end
+      else if (regSelect) begin
+        rBuf <= rBufReg[0];
+      end
+      else if (!iSelect) begin
         rBuf <= iWriteDataA;
       end else begin
         rBuf <= iWriteDataB;

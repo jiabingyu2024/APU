@@ -130,7 +130,8 @@ module Top #(
   wire [                           P_COMPAREWIDTH-1:0]                          SIMDReadData;
   wire [                               P_CHANNELS-1:0]                          SIMDData;
 
-
+    logic regWe;
+    logic regSelect;
 
   //----------------------------------------------Universal Instantiation----------------------------------------------//
   //-------------------AHBSlave-----------------------//
@@ -242,6 +243,8 @@ module Top #(
       //For InputBuf
       .oInputBufNWe      (InputBufNWe),
       .oInputBufSelect   (InputBufSelect),
+      .oInputBufRegWe    (regWe),
+      .oInputBufRegSelect(regSelect),
       //For OutSRAM
       .oOutReadCenterAddr(OutReadCenterAddr[$clog2(P_FEATURE_MEMORY_SIZE/P_BINDWIDTH)-1:0]),
       .oOutReadEn        (OutReadEn),
@@ -273,9 +276,12 @@ module Top #(
       .nCe        (1'b0),                      //Always enable
 
       .oInData(InBufData[P_BINDWIDTH-1:0]),
-      .iActSramReadCenterAddr(ActReadCenterAddr[$clog2(P_FEATURE_MEMORY_SIZE/P_BINDWIDTH)-1:0]),
-      .iInstruction(Instruction[31:0]),
-      .iComputeDone(ComputeDone)
+    //   .iActSramReadCenterAddr(ActReadCenterAddr[$clog2(P_FEATURE_MEMORY_SIZE/P_BINDWIDTH)-1:0]),
+    //   .iInstruction(Instruction[31:0]),
+    //   .iComputeDone(ComputeDone)
+
+      .regWe(regWe),
+      .regSelect(regSelect)
   );
   //---------------------ActSRAM----------------------//
   wire        U_ActSRAMnCe = !(in_ram_ren | ActReadEn);

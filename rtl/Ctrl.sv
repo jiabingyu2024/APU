@@ -21,6 +21,9 @@ module Ctrl #(
     output reg                                                 oInputBufNWe,        //need delay 1 cycle
     output reg                                                 oInputBufSelect,     //need delay 1 cycle
 
+    output reg                                                 oInputBufRegWe,        //need delay 1 cycle
+    output reg                                                 oInputBufRegSelect,     //need delay 1 cycle
+
     //For OutSRAM
     output     [$clog2(P_FEATURE_MEMORY_SIZE/P_BINDWIDTH)-1:0] oOutReadCenterAddr,
     output                                                     oOutReadEn,
@@ -76,6 +79,10 @@ module Ctrl #(
   reg [31:0] t;
   reg [31:0] round;
   wire [31:0] cyclePerTime;
+
+  wire [31:0] cyclePerTimeNormal;
+  wire [31:0] cyclePerTimeResidual;
+
   wire [31:0] timePerRound;
   wire [31:0] totalRound;
 
@@ -84,6 +91,12 @@ module Ctrl #(
   wire [31:0] readCenterAddr;
   wire [31:0] writeAddrNow;
   wire [31:0] weightAddrNow;
+
+
+  logic inBufRegWe;
+  logic inBufRegSelect;
+  logic inBufRegWeDelay1;
+  logic inBufRegSelectDelay1;
 
   reg [P_ADDR_WIDTH-1:0] writeAddr;
   reg                    writeEn;
@@ -118,13 +131,15 @@ module Ctrl #(
   assign inHW        = 6'd1 << inHWLog;
   assign inGroup     = (inCLog > P_BIND_LOG2[3:0]) ? (4'd1 << (inCLog - P_BIND_LOG2[3:0])) : 4'd1;
   assign outGroup    = (outCLog > P_BIND_LOG2[3:0]) ? (4'd1 << (outCLog - P_BIND_LOG2[3:0])) : 4'd1;
-  assign stride      = normalConv ? ((stride1Code == 2'b10) ? 2'd2 : 2'd1)
-                                  : ((stride2Code == 2'b11) ? 2'd2 : 2'd1);
+  assign stride      = (stride1Code == 2'b10) ? 2'd2 : 2'd1;
   assign outHW       = inHW >> (stride - 1'b1);
   assign kernelCycle = (kernelSize == 2'd3) ? 4'd9 : 4'd1;
 
   // round: output pixel, t: 64-output-channel block, cycle: MAC accumulation.
-  assign cyclePerTime = kernelCycle * inGroup - 1'b1;
+  assign cyclePerTime = residualConv ? cyclePerTimeResidual : cyclePerTimeNormal;
+  assign cyclePerTimeNormal = (kernelCycle * inGroup - 1'b1);
+  assign cyclePerTimeResidual = (kernelCycle * inGroup + (inGroup >> 1'b1));
+
   assign timePerRound = outGroup - 1'b1;
   assign totalRound   = outHW * outHW - 1'b1;
 
@@ -136,13 +151,13 @@ module Ctrl #(
 
   assign oActReadCenterAddr = readCenterAddr[P_ADDR_WIDTH-1:0];
   assign oOutReadCenterAddr = readCenterAddr[P_ADDR_WIDTH-1:0];
-  assign oActReadEn         = (state == CONV) && (!pingpong || residualConv);
-  assign oOutReadEn         = (state == CONV) && ( pingpong || residualConv);
-  assign oActKernelSize     = kernelSize;
+  assign oActReadEn         = ((state == CONV) && (!pingpong))  || (inBufRegWe && residualConv);
+  assign oOutReadEn         = (state == CONV) &&  pingpong;
+  assign oActKernelSize     = residualConv ? 4'd1 : kernelSize;
   assign oOutKernelSize     = kernelSize;
-  assign oActHW             = inHW;
+  assign oActHW             = residualConv ? (inHW << 1'b1) : inHW;
   assign oOutHW             = inHW;
-  assign oActlogInC         = inCLog;
+  assign oActlogInC         = residualConv ? (inCLog >> 1'b1) : inCLog;
   assign oOutlogInC         = inCLog;
 
   always @(posedge clk or negedge nRst) begin
@@ -163,6 +178,12 @@ module Ctrl #(
       oOutWriteEn          <= 1'b0;
       oInputBufNWe         <= 1'b1;
       oInputBufSelect      <= 1'b0;
+
+      oInputBufRegWe       <= 1'b0;
+      oInputBufRegSelect   <= 1'b0;
+      inBufRegWeDelay1        <= 1'b0;
+      inBufRegSelectDelay1 <= 1'b0;
+
     end else begin
       writeAddrDelay1      <= writeAddr;
       writeAddrDelay2      <= writeAddrDelay1;
@@ -180,6 +201,12 @@ module Ctrl #(
 
       oActWriteEn <= writeEnDelay2 && writeSelectDelay2;
       oOutWriteEn <= writeEnDelay2 && !writeSelectDelay2;
+
+      oInputBufRegWe       <= inBufRegWeDelay1;
+      oInputBufRegSelect   <= inBufRegSelectDelay1;
+      inBufRegWeDelay1  <= inBufRegWe;
+      inBufRegSelectDelay1 <= inBufRegSelect;
+
       if (writeSelectDelay3) begin
         oActWriteAddr <= writeAddrDelay3;
       end else begin
@@ -205,6 +232,10 @@ module Ctrl #(
       oWeightReadEn  <= 1'b0;
       oAccInstr      <= ACC_HOLD;
       oComputeDone   <= 1'b0;
+
+          inBufRegWe <= 1'b0;
+          inBufRegSelect <= 1'b0;
+
     end else begin
       writeAddr      <= writeAddrNow[P_ADDR_WIDTH-1:0];
       writeEn        <= 1'b0;
@@ -219,6 +250,8 @@ module Ctrl #(
           cycle <= 32'd0;
           t     <= 32'd0;
           round <= 32'd0;
+                inBufRegWe <= 1'b0;
+                inBufRegSelect <= 1'b0;
 
           if (oComputeDone) begin
             oComputeDone <= 1'b0;
@@ -238,6 +271,27 @@ module Ctrl #(
           oWeightAddr   <= weightAddrNow[7:0];
           oBNAddr       <= bnBaseAddr + t[4:0];
           oAccInstr     <= (cycle == 32'd0) ? ACC_LOAD : ACC_ADD;
+
+          if (t == '0)begin
+            if (cycle >= cyclePerTimeNormal && residualConv && cycle <= cyclePerTimeResidual) begin
+                inBufRegWe <= 1'b1;
+                inBufRegSelect <= 1'b0;
+            end
+            else begin
+                inBufRegWe <= 1'b0;
+                inBufRegSelect <= 1'b0;
+            end
+          end
+          else begin
+            if (cycle >= cyclePerTimeNormal && residualConv && cycle <= cyclePerTimeResidual) begin
+                inBufRegSelect <= 1'b1;
+                inBufRegWe <= 1'b0;
+            end
+            else begin
+                inBufRegSelect <= 1'b0;
+                inBufRegWe <= 1'b0;
+            end
+          end
 
           if (round < totalRound) begin
             if (t < timePerRound) begin
