@@ -92,6 +92,8 @@ initial begin
     $readmemb ("data/param_files/layer1.0.bn1_combined.txt",data_burst_SIMD_wr);
     //set layer1.0 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
     conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd6, 2'd1, 2'd0, 8'd0, 5'd0 ,0);
+    // run_apu();
+
 
 	//set layer1.0      conv and SIMD parameter
     $readmemb ("data/param_files/layer1.0.conv2.txt",data_burst_wr);
@@ -142,28 +144,28 @@ initial begin
     // occupy addresses 0..163, so they fit in the 256-entry weight SRAM.
     run_apu();
 
-    //---------------------------Run layer3--------------------------//
-    // A complete layer3 weight set does not fit in Weight SRAM. Load and run
-    // each operation separately, reusing weight/BN/worksheet address zero.
-    $readmemb ("data/param_files/layer3.0.conv1.txt",data_burst_wr);
-    $readmemb ("data/param_files/layer3.0.bn1_combined.txt",data_burst_SIMD_wr);
-    conv_layer(2'b00, 2'd3, 3'd4, 4'd7, 4'd8, 2'd2, 2'd0, 8'd0, 5'd0, 0);
-    run_apu();
+    // //---------------------------Run layer3--------------------------//
+    // // A complete layer3 weight set does not fit in Weight SRAM. Load and run
+    // // each operation separately, reusing weight/BN/worksheet address zero.
+    // $readmemb ("data/param_files/layer3.0.conv1.txt",data_burst_wr);
+    // $readmemb ("data/param_files/layer3.0.bn1_combined.txt",data_burst_SIMD_wr);
+    // conv_layer(2'b00, 2'd3, 3'd4, 4'd7, 4'd8, 2'd2, 2'd0, 8'd0, 5'd0, 0);
+    // run_apu();
 
-    $readmemb ("data/param_files/layer3.0.conv2_combined.txt",data_burst_wr);
-    $readmemb ("data/param_files/layer3.0.bn3_combined.txt",data_burst_SIMD_wr);
-    conv_resident_layer(2'b01, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd2, 8'd0, 5'd0, 0);
-    run_apu();
+    // $readmemb ("data/param_files/layer3.0.conv2_combined.txt",data_burst_wr);
+    // $readmemb ("data/param_files/layer3.0.bn3_combined.txt",data_burst_SIMD_wr);
+    // conv_resident_layer(2'b01, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd2, 8'd0, 5'd0, 0);
+    // run_apu();
 
-    $readmemb ("data/param_files/layer3.1.conv1.txt",data_burst_wr);
-    $readmemb ("data/param_files/layer3.1.bn1_combined.txt",data_burst_SIMD_wr);
-    conv_layer(2'b00, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd0, 8'd0, 5'd0, 0);
-    run_apu();
+    // $readmemb ("data/param_files/layer3.1.conv1.txt",data_burst_wr);
+    // $readmemb ("data/param_files/layer3.1.bn1_combined.txt",data_burst_SIMD_wr);
+    // conv_layer(2'b00, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd0, 8'd0, 5'd0, 0);
+    // run_apu();
 
-    $readmemb ("data/param_files/layer3.1.conv2.txt",data_burst_wr);
-    $readmemb ("data/param_files/layer3.1.bn3_combined.txt",data_burst_SIMD_wr);
-    conv_layer(2'b00, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd0, 8'd0, 5'd0, 0);
-    run_apu();
+    // $readmemb ("data/param_files/layer3.1.conv2.txt",data_burst_wr);
+    // $readmemb ("data/param_files/layer3.1.bn3_combined.txt",data_burst_SIMD_wr);
+    // conv_layer(2'b00, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd0, 8'd0, 5'd0, 0);
+    // run_apu();
 
     //read data
     ahb_write(RAM_CTRL_ADDR, 4, 32'h3 );

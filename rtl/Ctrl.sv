@@ -115,6 +115,9 @@ module Ctrl #(
   reg                    inputBufNWeDelay1;
   reg                    inputBufSelectDelay1;
 
+  logic   [3:0]  inGroupResidual;
+  assign inGroupResidual = residualConv ? (inGroup >> 1'b1) :'b0;
+
   assign opcode         = iInstruction[31:30];
   assign kernelSize     = iInstruction[29:28];
   assign inHWLog        = iInstruction[27:25];
@@ -138,7 +141,7 @@ module Ctrl #(
   // round: output pixel, t: 64-output-channel block, cycle: MAC accumulation.
   assign cyclePerTime = residualConv ? cyclePerTimeResidual : cyclePerTimeNormal;
   assign cyclePerTimeNormal = (kernelCycle * inGroup - 1'b1);
-  assign cyclePerTimeResidual = (kernelCycle * inGroup + (inGroup >> 1'b1));
+  assign cyclePerTimeResidual = (kernelCycle * inGroup + (inGroup >> 1'b1) - 1'b1);
 
   assign timePerRound = outGroup - 1'b1;
   assign totalRound   = outHW * outHW - 1'b1;
@@ -147,7 +150,7 @@ module Ctrl #(
   assign pixelCol       = round % outHW;
   assign readCenterAddr = ((pixelRow * stride) * inHW + (pixelCol * stride)) * inGroup;
   assign writeAddrNow   = round * outGroup + t;
-  assign weightAddrNow  = weightBaseAddr + t * (kernelCycle * inGroup) + cycle;
+  assign weightAddrNow  = weightBaseAddr + t * (kernelCycle * inGroup + inGroupResidual) + cycle;
 
   assign oActReadCenterAddr = readCenterAddr[P_ADDR_WIDTH-1:0];
   assign oOutReadCenterAddr = readCenterAddr[P_ADDR_WIDTH-1:0];
