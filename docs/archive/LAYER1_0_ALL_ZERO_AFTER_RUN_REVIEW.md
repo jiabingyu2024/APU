@@ -188,3 +188,80 @@ data_out 与 layer1.0_tanh1_output 做格式转换后对拍
 当前“输出全 0”不是因为没有运行，也不是因为 OutSRAM 没写。APU 已经完成 1024 次输出写回，但前 1023 次写回时 `SIMDData` 对应的不是完整卷积累加结果，而是下一输出点开始后的 partial sum。
 
 最可能根因是 Ctrl 只延迟了写使能/写地址，没有同步延迟或保持 SIMD/Accumulator 数据，导致写回数据和写回控制错位。最后一个输出点因为进入 IDLE 后 Accumulator 保持，反而表现出正确量级，这与波形和 `data_out.txt` 的末尾非零完全吻合。
+
+## 9. 修复记录
+
+### 2026-06-08：修复普通卷积写回保持窗口
+
+修改文件：
+
+```text
+rtl/Ctrl.sv
+```
+
+修改内容：
+
+- 增加 `writebackPending` 和 `writebackCount`。
+- 当 `cycle == cyclePerTime` 时，不再立即推进到下一个输出点。
+- 在写回阶段暂停新的 Feature/Weight 读取，避免 FeatureProcessor 的 kernel 内部计数继续前进。
+- 保留 1 个 drain 周期，让最后一级 SRAM/InBuf/WeightBuffer 延迟数据进入 Accumulator。
+- 发出 `writeEn` 后保持 Accumulator/SIMDData，等现有 `writeEnDelay*` 和 `writeAddrDelay*` 驱动 OutSRAM 写完，再推进 `round/t/cycle`。
+
+关键原因：
+
+```text
+Top_student.sv 直接将 SIMDData 连接到 FeatureProcessor 写数据口。
+因此 Ctrl 必须保证 oOutWriteEn 有效时，SIMDData 仍是当前输出点的最终结果。
+```
+
+验证命令：
+
+```bash
+CCACHE_DISABLE=1 make run
+```
+
+环境说明：
+
+- 第一次直接 `make run` 被 `ccache: Read-only file system` 阻塞。
+- 使用 `CCACHE_DISABLE=1` 后可完成 Verilator 编译和仿真。
+- Verilator 仍报告一批既有 warning，未在本次修复中处理。
+
+修复前后关键指标：
+
+| 指标 | 修复前 | 修复后 |
+|---|---:|---:|
+| `OutWriteEn` 次数 | 1024 | 1024 |
+| `data_out.txt` 总行数 | 2048 | 2048 |
+| 全 0 行 | 2045 | 1 |
+| 总 1 bit 数 | 39 | 33176 |
+| golden `layer1.0_tanh1_output` 1 bit 数 | 32904 | 32904 |
+| 写回时 Accumulator 量级 | 多数约 50..80，仅最后约 253..332 | 多数约 230..340 |
+
+修复后代表性写回波形：
+
+```text
+write[0]    : SIMD ones = 0,  Acc min/max = 190 / 259
+write[1]    : SIMD ones = 25, Acc min/max = 229 / 339
+write[2]    : SIMD ones = 32, Acc min/max = 239 / 330
+write[100]  : SIMD ones = 42, Acc min/max = 226 / 328
+write[500]  : SIMD ones = 26, Acc min/max = 239 / 356
+write[1023] : SIMD ones = 23, Acc min/max = 227 / 336
+```
+
+当前状态：
+
+- “运行后输出近似全 0”的问题已修复。
+- 逐 bit 对拍 `layer1.0_tanh1_output.txt` 仍未完全通过。当前最佳尝试约为：
+
+```text
+bitdiff = 17494 / 65472
+order=fwd, invert=false, shift=2
+```
+
+剩余 mismatch 不再是本日志定位的写回数据被下一点 partial sum 覆盖问题，后续应单独排查：
+
+- AHB burst read 保存是否仍有 32-bit offset。
+- `data_flow` 的 32-bit/64-bit 打包顺序和 SRAM dump 顺序是否一致。
+- `Multiplier` 当前为 XOR 计数，是否与 golden 的二值卷积语义完全一致。
+- padding 的硬件 `zeroMask -> '0` 是否和软件 golden 的 padding 表示一致。
+- BN/SIMD 参数 bit 含义和比较方向是否与 golden 完全一致。

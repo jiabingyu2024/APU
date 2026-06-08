@@ -1,7 +1,9 @@
 VERILATOR ?= verilator
 
 TOP       := tb_top
-BUILD_DIR := build
+BUILD_ROOT := build
+BUILD_DIR := $(BUILD_ROOT)/verilator
+SIM_OUT_DIR := $(BUILD_ROOT)/sim
 TB_SRC    := tb/tb_top_student.sv
 CPP_SRC   := tb/verilator_main.cpp
 RTL_SRCS  := $(sort $(wildcard rtl/*.sv))
@@ -24,11 +26,14 @@ VERILATOR_FLAGS := \
 
 all: $(SIM)
 
-$(SIM): $(RTL_SRCS) $(TB_SRC) $(CPP_SRC)
+$(BUILD_DIR) $(SIM_OUT_DIR):
+	mkdir -p $@
+
+$(SIM): $(RTL_SRCS) $(TB_SRC) $(CPP_SRC) | $(BUILD_DIR)
 	$(VERILATOR) $(VERILATOR_FLAGS) $(RTL_SRCS) $(TB_SRC) $(CPP_SRC) -o V$(TOP)
 
-run: $(SIM)
+run: $(SIM) | $(SIM_OUT_DIR)
 	./$(SIM)
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_ROOT)
