@@ -115,64 +115,74 @@ initial begin
     run_apu();
 
 
-	// //---------------------------Run layer2--------------------------//
+	//---------------------------Run layer2--------------------------//
  
-    // //set layer2.0      conv and SIMD parameter C: 64->128
-    // $readmemb ("data/param_files/layer2.0.conv1.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer2.0.bn1_combined.txt",data_burst_SIMD_wr);
-    // //set layer2.0 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
-    // conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd7, 2'd2, 2'd0, 8'd36, 5'd4 ,4);
+    //set layer2.0      conv and SIMD parameter C: 64->128
+    $readmemb ("data/param_files/layer2.0.conv1.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer2.0.bn1_combined.txt",data_burst_SIMD_wr);
+    //set layer2.0 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
+    conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd7, 2'd2, 2'd0, 8'd36, 5'd4 ,4);
 
-	// //set layer2.0      conv and SIMD parameter resident
-    // $readmemb ("data/param_files/layer2.0.conv2_combined.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer2.0.bn3_combined.txt",data_burst_SIMD_wr);
-    // //set layer2.0 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}+36
-    // conv_resident_layer(2'b01, 2'd3, 3'd4, 4'd7, 4'd7, 2'd1, 2'd2, 8'd54, 5'd6 ,5);
+	//set layer2.0      conv and SIMD parameter resident
+    $readmemb ("data/param_files/layer2.0.conv2_combined.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer2.0.bn3_combined.txt",data_burst_SIMD_wr);
+    //set layer2.0 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}+36
+    conv_resident_layer(2'b01, 2'd3, 3'd4, 4'd7, 4'd7, 2'd1, 2'd2, 8'd54, 5'd6 ,5);
 
 	
-	// //set layer2.1      conv and SIMD parameter
-    // $readmemb ("data/param_files/layer2.1.conv1.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer2.1.bn1_combined.txt",data_burst_SIMD_wr);
-    // //set layer2.1 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
-    // conv_layer(2'b00, 2'd3, 3'd4, 4'd7, 4'd7, 2'd1, 2'd0, 8'd92, 5'd10 ,6);
+	//set layer2.1      conv and SIMD parameter
+    $readmemb ("data/param_files/layer2.1.conv1.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer2.1.bn1_combined.txt",data_burst_SIMD_wr);
+    //set layer2.1 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
+    conv_layer(2'b00, 2'd3, 3'd4, 4'd7, 4'd7, 2'd1, 2'd0, 8'd92, 5'd10 ,6);
 
-	// //set layer2.1      conv and SIMD parameter
-    // $readmemb ("data/param_files/layer2.1.conv2.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer2.1.bn3_combined.txt",data_burst_SIMD_wr);
-    // //set layer2.1 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
-    // conv_layer(2'b00, 2'd3, 3'd4, 4'd7, 4'd7, 2'd1, 2'd0, 8'd128, 5'd14 ,7);
+	//set layer2.1      conv and SIMD parameter
+    $readmemb ("data/param_files/layer2.1.conv2.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer2.1.bn3_combined.txt",data_burst_SIMD_wr);
+    //set layer2.1 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
+    conv_layer(2'b00, 2'd3, 3'd4, 4'd7, 4'd7, 2'd1, 2'd0, 8'd128, 5'd14 ,7);
 
-    // // Run the first eight instructions as one worksheet batch. Their weights
-    // // occupy addresses 0..163, so they fit in the 256-entry weight SRAM.
+    // Run the first eight instructions as one worksheet batch. Their weights
+    // occupy addresses 0..163, so they fit in the 256-entry weight SRAM.
     // run_apu();
 
-    // //---------------------------Run layer3--------------------------//
-    // // A complete layer3 weight set does not fit in Weight SRAM. Load and run
-    // // each operation separately, reusing weight/BN/worksheet address zero.
-    // $readmemb ("data/param_files/layer3.0.conv1.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer3.0.bn1_combined.txt",data_burst_SIMD_wr);
-    // conv_layer(2'b00, 2'd3, 3'd4, 4'd7, 4'd8, 2'd2, 2'd0, 8'd0, 5'd0, 0);
-    // run_apu();
+    //---------------------------Run layer3--------------------------//
+    // A complete layer3 weight set does not fit in Weight SRAM. Load and run
+    // each operation separately, reusing weight/BN/worksheet address zero.
+    $readmemb ("data/param_files/layer3.0.conv1.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer3.0.bn1_combined.txt",data_burst_SIMD_wr);
+    conv_layer(2'b00, 2'd3, 3'd4, 4'd7, 4'd8, 2'd2, 2'd0, 8'd0, 5'd0, 0);
+    run_apu();
+    ahb_write(RAM_CTRL_ADDR, 4, 32'h3 );
+    ahb_write(RAM_SEL_ADDR, 4, 129);
+    ahb_read_burst_save_named(0,2*256,1'b0,"build/sim/layer3.0_tanh1_hw.txt");
 
-    // $readmemb ("data/param_files/layer3.0.conv2_combined.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer3.0.bn3_combined.txt",data_burst_SIMD_wr);
-    // conv_resident_layer(2'b01, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd2, 8'd0, 5'd0, 0);
-    // run_apu();
+    $readmemb ("data/param_files/layer3.0.conv2_combined.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer3.0.bn3_combined.txt",data_burst_SIMD_wr);
+    conv_resident_layer(2'b01, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd2, 8'd0, 5'd0, 0);
+    run_apu();
+    ahb_write(RAM_CTRL_ADDR, 4, 32'h3 );
+    ahb_write(RAM_SEL_ADDR, 4, 128);
+    ahb_read_burst_save_named(0,2*256,1'b0,"build/sim/layer3.0_tanh3_hw.txt");
 
-    // $readmemb ("data/param_files/layer3.1.conv1.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer3.1.bn1_combined.txt",data_burst_SIMD_wr);
-    // conv_layer(2'b00, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd0, 8'd0, 5'd0, 0);
-    // run_apu();
+    $readmemb ("data/param_files/layer3.1.conv1.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer3.1.bn1_combined.txt",data_burst_SIMD_wr);
+    conv_layer(2'b00, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd0, 8'd0, 5'd0, 0);
+    run_apu();
+    ahb_write(RAM_CTRL_ADDR, 4, 32'h3 );
+    ahb_write(RAM_SEL_ADDR, 4, 129);
+    ahb_read_burst_save_named(0,2*256,1'b0,"build/sim/layer3.1_tanh1_hw.txt");
 
-    // $readmemb ("data/param_files/layer3.1.conv2.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer3.1.bn3_combined.txt",data_burst_SIMD_wr);
-    // conv_layer(2'b00, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd0, 8'd0, 5'd0, 0);
-    // run_apu();
+    $readmemb ("data/param_files/layer3.1.conv2.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer3.1.bn3_combined.txt",data_burst_SIMD_wr);
+    conv_layer(2'b00, 2'd3, 3'd3, 4'd8, 4'd8, 2'd1, 2'd0, 8'd0, 5'd0, 0);
+    run_apu();
 
     //read data
     ahb_write(RAM_CTRL_ADDR, 4, 32'h3 );
     ahb_write(RAM_SEL_ADDR, 4, 128);//129 for 1,3    128 for 2,4
-    ahb_read_burst_save(0,4*512);//write 2048 here means write 2048 rows
+    ahb_read_burst_save(0,2*256,1'b0);
+
     repeat (20) @ (posedge hclk);
     $finish;
 end
@@ -479,15 +489,31 @@ endtask
 task ahb_read_burst_save;     
      input  [31:0] addr;
      input  [31:0] leng;
+     input         swap_channel_groups;
+     begin
+         ahb_read_burst_save_named(addr, leng, swap_channel_groups,
+                                   "build/sim/data_out.txt");
+     end
+endtask
+
+task ahb_read_burst_save_named;     
+     input  [31:0] addr;
+     input  [31:0] leng;
+     input         swap_channel_groups;
+     input  string path;
      integer       i;
      reg    [31:0] read_data;
      reg    [31:0] low_word;
+     reg    [31:0] first_group_high;
+     reg    [31:0] first_group_low;
      begin
-         fp_datao_w = $fopen("build/sim/data_out.txt","w");
+         fp_datao_w = $fopen(path,"w");
          if (fp_datao_w == 0)
-             $fatal(1, "failed to open build/sim/data_out.txt");
+             $fatal(1, "failed to open %s", path);
          if (leng[0] != 1'b0)
              $fatal(1, "64-bit SRAM dump requires an even number of 32-bit words");
+         if (swap_channel_groups && (leng[1:0] != 2'b00))
+             $fatal(1, "128-channel dump requires pairs of 64-bit words");
 
          @ (posedge hclk);
          hbusreq <= 1'b1;
@@ -512,8 +538,18 @@ task ahb_read_burst_save;
              if (i[0] == 1'b0) begin
                  low_word = read_data;
              end else begin
-                 $fwrite(fp_datao_w,"%32b\n",read_data);
-                 $fwrite(fp_datao_w,"%32b\n",low_word);
+                 if (!swap_channel_groups) begin
+                     $fwrite(fp_datao_w,"%32b\n",read_data);
+                     $fwrite(fp_datao_w,"%32b\n",low_word);
+                 end else if (i[1] == 1'b0) begin
+                     first_group_high = read_data;
+                     first_group_low  = low_word;
+                 end else begin
+                     $fwrite(fp_datao_w,"%32b\n",read_data);
+                     $fwrite(fp_datao_w,"%32b\n",low_word);
+                     $fwrite(fp_datao_w,"%32b\n",first_group_high);
+                     $fwrite(fp_datao_w,"%32b\n",first_group_low);
+                 end
              end
          end
 

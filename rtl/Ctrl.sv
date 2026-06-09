@@ -904,20 +904,20 @@ end
 
 always_ff @( posedge clk )
 begin
-    if((!nRst)||(nCe)||(oInputBufNWe))
+    if((!nRst)||(nCe))
     begin
         oInputBufSelect<=0;
     end
+    else if((state==IDLE)||(oInputBufNWe))
+    begin
+        // Prepare the main ping-pong source before the first InBuf write.
+        // This avoids selecting stale ActSRAM data when a residual
+        // instruction starts immediately after an OutSRAM-producing layer.
+        oInputBufSelect<=pingpong;
+    end
     else
     begin
-        if(state==IDLE)
-        begin
-            oInputBufSelect<=0;
-        end
-        else
-        begin
-            oInputBufSelect<=oOutReadEn;
-        end
+        oInputBufSelect<=oOutReadEn;
     end
 end
 
