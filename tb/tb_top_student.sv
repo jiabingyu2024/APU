@@ -92,26 +92,28 @@ initial begin
     $readmemb ("data/param_files/layer1.0.bn1_combined.txt",data_burst_SIMD_wr);
     //set layer1.0 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
     conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd6, 2'd1, 2'd0, 8'd0, 5'd0 ,0);
+    // run_apu();
+
+
+	//set layer1.0      conv and SIMD parameter
+    $readmemb ("data/param_files/layer1.0.conv2.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer1.0.bn3_combined.txt",data_burst_SIMD_wr);
+    //set layer1.0 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
+    conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd6, 2'd1, 2'd0, 8'd9, 5'd1 ,1);
+
+	//set layer1.1      conv and SIMD parameter
+    $readmemb ("data/param_files/layer1.1.conv1.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer1.1.bn1_combined.txt",data_burst_SIMD_wr);
+    //set layer1.1 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
+    conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd6, 2'd1, 2'd0, 8'd18, 5'd2 ,2);
+
+	//set layer1.1      conv and SIMD parameter
+    $readmemb ("data/param_files/layer1.1.conv2.txt",data_burst_wr);
+    $readmemb ("data/param_files/layer1.1.bn3_combined.txt",data_burst_SIMD_wr);
+    //set layer1.1 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
+    conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd6, 2'd1, 2'd0, 8'd27, 5'd3 ,3);
     run_apu();
 
-
-	// //set layer1.0      conv and SIMD parameter
-    // $readmemb ("data/param_files/layer1.0.conv2.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer1.0.bn3_combined.txt",data_burst_SIMD_wr);
-    // //set layer1.0 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
-    // conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd6, 2'd1, 2'd0, 8'd9, 5'd1 ,1);
-
-	// //set layer1.1      conv and SIMD parameter
-    // $readmemb ("data/param_files/layer1.1.conv1.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer1.1.bn1_combined.txt",data_burst_SIMD_wr);
-    // //set layer1.1 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
-    // conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd6, 2'd1, 2'd0, 8'd18, 5'd2 ,2);
-
-	// //set layer1.1      conv and SIMD parameter
-    // $readmemb ("data/param_files/layer1.1.conv2.txt",data_burst_wr);
-    // $readmemb ("data/param_files/layer1.1.bn3_combined.txt",data_burst_SIMD_wr);
-    // //set layer1.1 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
-    // conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd6, 2'd1, 2'd0, 8'd27, 5'd3 ,3);
 
 	// //---------------------------Run layer2--------------------------//
  
@@ -169,7 +171,7 @@ initial begin
 
     //read data
     ahb_write(RAM_CTRL_ADDR, 4, 32'h3 );
-    ahb_write(RAM_SEL_ADDR, 4, 129);//129 for 1,3    128 for 2,4
+    ahb_write(RAM_SEL_ADDR, 4, 128);//129 for 1,3    128 for 2,4
     ahb_read_burst_save(0,4*512);//write 2048 here means write 2048 rows
     repeat (20) @ (posedge hclk);
     $finish;
@@ -478,50 +480,49 @@ task ahb_read_burst_save;
      input  [31:0] addr;
      input  [31:0] leng;
      integer       i;
+     reg    [31:0] read_data;
+     reg    [31:0] low_word;
      begin
          fp_datao_w = $fopen("build/sim/data_out.txt","w");
          if (fp_datao_w == 0)
              $fatal(1, "failed to open build/sim/data_out.txt");
-         @ (posedge hclk);
-         hbusreq <=  1'b1;
-         @ (posedge hclk);
-         while ((hgrant!==1'b1)||(hready!==1'b1)) @ (posedge hclk);
-         haddr  <=  addr;
-         htrans <=  2'b10; //`htrans_nonseq;
-         if (leng==4)       hburst <=  3'b011; //`hburst_incr4;
-         else if (leng==8)  hburst <=  3'b101; //`hburst_incr8;
-         else if (leng==16) hburst <=  3'b111; //`hburst_incr16;
-         else               hburst <=  3'b001; //`hburst_incr;
-         hwrite <=  1'b0; //`hwrite_read;
-         hsize  <=  3'b010; //`hsize_word;
-         @ (posedge hclk);
-         while (hready==1'b0) @ (posedge hclk);
-         for (i=0; i<leng-1; i=i+1) begin
-             haddr  <=  addr+(i+1)*4;
-             htrans <=  2'b11; //`htrans_seq;
-             @ (posedge hclk);
-             while (hready==1'b0) @ (posedge hclk);
-             $fwrite(fp_datao_w,"%32b\n",hrdata);
-             //data_burst_rd[i] = hrdata; // must be blocking
-         end
-         //hsel   <=  0;
-         haddr  <=  0;
-         htrans <=  0;
-         hburst <=  0;
-         hwrite <=  0;
-         hsize  <=  0;
-         hbusreq <=  1'b0;
-         @ (posedge hclk);
-         while (hready==0) @ (posedge hclk);
-         $fwrite(fp_datao_w,"%32b\n",hrdata);
+         if (leng[0] != 1'b0)
+             $fatal(1, "64-bit SRAM dump requires an even number of 32-bit words");
 
-         //data_burst_rd[i] = hrdata; // must be blocking
-         if (hresp!=2'b00) begin //`hresp_okay
-$display($time,, "error: non ok response for read");
-            end
-`ifdef debug
-$display($time,, "info: read(%x, %d, %x)", address, size, data);
-`endif
+         @ (posedge hclk);
+         hbusreq <= 1'b1;
+         @ (posedge hclk);
+         while ((hgrant !== 1'b1) || (hready !== 1'b1)) @ (posedge hclk);
+
+         hwrite <= 1'b0;
+         hsize  <= 3'b010;
+         hburst <= (leng == 4)  ? 3'b011 :
+                   (leng == 8)  ? 3'b101 :
+                   (leng == 16) ? 3'b111 : 3'b001;
+
+         for (i=0; i<leng; i=i+1) begin
+             haddr  <= addr + i * 4;
+             htrans <= (i == 0) ? 2'b10 : 2'b11;
+             @ (posedge hclk);
+             while (hready !== 1'b1) @ (posedge hclk);
+             @ (negedge hclk);
+             read_data = hrdata;
+             if (hresp != 2'b00)
+                 $fatal(1, "non-OK response while dumping AHB read data");
+             if (i[0] == 1'b0) begin
+                 low_word = read_data;
+             end else begin
+                 $fwrite(fp_datao_w,"%32b\n",read_data);
+                 $fwrite(fp_datao_w,"%32b\n",low_word);
+             end
+         end
+
+         haddr   <= 0;
+         htrans  <= 0;
+         hburst  <= 0;
+         hwrite  <= 0;
+         hsize   <= 0;
+         hbusreq <= 1'b0;
          @ (posedge hclk);
          $fclose(fp_datao_w);
      end
