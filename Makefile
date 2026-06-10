@@ -22,7 +22,7 @@ VERILATOR_FLAGS := \
 	-Wno-fatal \
 	-CFLAGS "-std=c++17"
 
-.PHONY: all run clean
+.PHONY: all run check clean
 
 all: $(SIM)
 
@@ -34,6 +34,10 @@ $(SIM): $(RTL_SRCS) $(TB_SRC) $(CPP_SRC) | $(BUILD_DIR)
 
 run: $(SIM) | $(SIM_OUT_DIR)
 	./$(SIM)
+
+check: run
+	./$(SIM) +LAYER1_ONLY
+	python3 scripts/compare_outputs.py
 
 clean:
 	rm -rf $(BUILD_ROOT)

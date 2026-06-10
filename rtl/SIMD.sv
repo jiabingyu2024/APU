@@ -35,8 +35,11 @@ module SIMD #(
     for (gv_i = 0; gv_i < P_CHANNELS; gv_i++) begin
       // SIMD_Temp[gv_i]=()
       always @(*) begin
-        SIMD_Temp[gv_i] = (iAccData[gv_i] > SIMD_Reg[iAddr][gv_i][P_COMPAREWIDTH-2:0]) ? 1 : 0;
-        oSIMDData[gv_i] = (SIMD_Reg[iAddr][gv_i][P_COMPAREWIDTH-1] == 1'b1) ? SIMD_Temp[gv_i] : (~SIMD_Temp[gv_i]);//我的问题？
+        SIMD_Temp[gv_i] =
+            (iAccData[gv_i] > SIMD_Reg[iAddr][gv_i][P_COMPAREWIDTH-2:0]);
+        oSIMDData[gv_i] = SIMD_Reg[iAddr][gv_i][P_COMPAREWIDTH-1] ?
+            SIMD_Temp[gv_i] :
+            (iAccData[gv_i] < SIMD_Reg[iAddr][gv_i][P_COMPAREWIDTH-2:0]);
       end
     end
   endgenerate

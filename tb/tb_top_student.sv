@@ -112,7 +112,17 @@ initial begin
     $readmemb ("data/param_files/layer1.1.bn3_combined.txt",data_burst_SIMD_wr);
     //set layer1.1 instruction {opcode, kernalSize, logInHW, logInC, logOutC, stride1, stride2, wAdddr, bnAddr}
     conv_layer(2'b00, 2'd3, 3'd5, 4'd6, 4'd6, 2'd1, 2'd0, 8'd27, 5'd3 ,3);
-    run_apu();
+    // Keep layer1 and layer2 in one worksheet batch. WorkSheet execution
+    // always starts from address zero after a completed batch.
+    if ($test$plusargs("LAYER1_ONLY")) begin
+        run_apu();
+        ahb_write(RAM_CTRL_ADDR, 4, 32'h3);
+        ahb_write(RAM_SEL_ADDR, 4, 128);
+        ahb_read_burst_save_named(0, 2*1024, 1,
+                                  "build/sim/layer1.1_tanh3_hw.txt");
+        repeat (20) @ (posedge hclk);
+        $finish;
+    end
 
 
 	//---------------------------Run layer2--------------------------//
@@ -144,7 +154,11 @@ initial begin
 
     // Run the first eight instructions as one worksheet batch. Their weights
     // occupy addresses 0..163, so they fit in the 256-entry weight SRAM.
-    // run_apu();
+    run_apu();
+    ahb_write(RAM_CTRL_ADDR, 4, 32'h3);
+    ahb_write(RAM_SEL_ADDR, 4, 128);
+    ahb_read_burst_save_named(0, 2*512, 2,
+                              "build/sim/layer2.1_tanh3_hw.txt");
 
     //---------------------------Run layer3--------------------------//
     // A complete layer3 weight set does not fit in Weight SRAM. Load and run
@@ -155,7 +169,7 @@ initial begin
     run_apu();
     ahb_write(RAM_CTRL_ADDR, 4, 32'h3 );
     ahb_write(RAM_SEL_ADDR, 4, 129);
-    ahb_read_burst_save_named(0,2*256,1'b0,"build/sim/layer3.0_tanh1_hw.txt");
+    ahb_read_burst_save_named(0,2*256,4,"build/sim/layer3.0_tanh1_hw.txt");
 
     $readmemb ("data/param_files/layer3.0.conv2_combined.txt",data_burst_wr);
     $readmemb ("data/param_files/layer3.0.bn3_combined.txt",data_burst_SIMD_wr);
@@ -163,7 +177,7 @@ initial begin
     run_apu();
     ahb_write(RAM_CTRL_ADDR, 4, 32'h3 );
     ahb_write(RAM_SEL_ADDR, 4, 128);
-    ahb_read_burst_save_named(0,2*256,1'b0,"build/sim/layer3.0_tanh3_hw.txt");
+    ahb_read_burst_save_named(0,2*256,4,"build/sim/layer3.0_tanh3_hw.txt");
 
     $readmemb ("data/param_files/layer3.1.conv1.txt",data_burst_wr);
     $readmemb ("data/param_files/layer3.1.bn1_combined.txt",data_burst_SIMD_wr);
@@ -171,7 +185,7 @@ initial begin
     run_apu();
     ahb_write(RAM_CTRL_ADDR, 4, 32'h3 );
     ahb_write(RAM_SEL_ADDR, 4, 129);
-    ahb_read_burst_save_named(0,2*256,1'b0,"build/sim/layer3.1_tanh1_hw.txt");
+    ahb_read_burst_save_named(0,2*256,4,"build/sim/layer3.1_tanh1_hw.txt");
 
     $readmemb ("data/param_files/layer3.1.conv2.txt",data_burst_wr);
     $readmemb ("data/param_files/layer3.1.bn3_combined.txt",data_burst_SIMD_wr);
@@ -181,7 +195,7 @@ initial begin
     //read data
     ahb_write(RAM_CTRL_ADDR, 4, 32'h3 );
     ahb_write(RAM_SEL_ADDR, 4, 128);//129 for 1,3    128 for 2,4
-    ahb_read_burst_save(0,2*256,1'b0);
+    ahb_read_burst_save(0,2*256,4);
 
     repeat (20) @ (posedge hclk);
     $finish;
@@ -489,9 +503,9 @@ endtask
 task ahb_read_burst_save;     
      input  [31:0] addr;
      input  [31:0] leng;
-     input         swap_channel_groups;
+     input  integer channel_groups;
      begin
-         ahb_read_burst_save_named(addr, leng, swap_channel_groups,
+         ahb_read_burst_save_named(addr, leng, channel_groups,
                                    "build/sim/data_out.txt");
      end
 endtask
@@ -499,21 +513,23 @@ endtask
 task ahb_read_burst_save_named;     
      input  [31:0] addr;
      input  [31:0] leng;
-     input         swap_channel_groups;
+     input  integer channel_groups;
      input  string path;
      integer       i;
+     integer       group_idx;
+     integer       words_per_pixel;
      reg    [31:0] read_data;
-     reg    [31:0] low_word;
-     reg    [31:0] first_group_high;
-     reg    [31:0] first_group_low;
+     reg    [31:0] pixel_words [0:7];
      begin
          fp_datao_w = $fopen(path,"w");
          if (fp_datao_w == 0)
              $fatal(1, "failed to open %s", path);
-         if (leng[0] != 1'b0)
-             $fatal(1, "64-bit SRAM dump requires an even number of 32-bit words");
-         if (swap_channel_groups && (leng[1:0] != 2'b00))
-             $fatal(1, "128-channel dump requires pairs of 64-bit words");
+         if ((channel_groups != 1) && (channel_groups != 2) &&
+             (channel_groups != 4))
+             $fatal(1, "channel_groups must be 1, 2, or 4");
+         words_per_pixel = 2 * channel_groups;
+         if ((leng % words_per_pixel) != 0)
+             $fatal(1, "dump length is not aligned to one output pixel");
 
          @ (posedge hclk);
          hbusreq <= 1'b1;
@@ -535,20 +551,12 @@ task ahb_read_burst_save_named;
              read_data = hrdata;
              if (hresp != 2'b00)
                  $fatal(1, "non-OK response while dumping AHB read data");
-             if (i[0] == 1'b0) begin
-                 low_word = read_data;
-             end else begin
-                 if (!swap_channel_groups) begin
-                     $fwrite(fp_datao_w,"%32b\n",read_data);
-                     $fwrite(fp_datao_w,"%32b\n",low_word);
-                 end else if (i[1] == 1'b0) begin
-                     first_group_high = read_data;
-                     first_group_low  = low_word;
-                 end else begin
-                     $fwrite(fp_datao_w,"%32b\n",read_data);
-                     $fwrite(fp_datao_w,"%32b\n",low_word);
-                     $fwrite(fp_datao_w,"%32b\n",first_group_high);
-                     $fwrite(fp_datao_w,"%32b\n",first_group_low);
+             pixel_words[i % words_per_pixel] = read_data;
+             if ((i % words_per_pixel) == (words_per_pixel - 1)) begin
+                 for (group_idx = channel_groups - 1; group_idx >= 0;
+                      group_idx = group_idx - 1) begin
+                     $fwrite(fp_datao_w, "%32b\n", pixel_words[2*group_idx+1]);
+                     $fwrite(fp_datao_w, "%32b\n", pixel_words[2*group_idx]);
                  end
              end
          end
