@@ -46,11 +46,7 @@ module FeatureProcessor #(
   integer i;
 
   always_ff @(posedge clk or negedge nRst) begin
-    if (!nRst) begin
-      for (i = 0; i < P_FEATURE_WORDS; i = i + 1) begin
-        featureMemory[i] <= '0;
-      end
-    end else if (!nWe) begin
+    if (!nWe) begin
       featureMemory[iWriteAddr] <= iWriteData;
     end
   end  

@@ -48,6 +48,11 @@ module Ctrl #(
   // FeatureSRAM 同步读 1 拍 + InBuf 1 拍，以及 WeightSRAM 1 拍 + WeightBuffer 1 拍。
   // 修改任一存储/缓冲级延迟时，必须同步重做 acc/write 控制相位。
   localparam int FEATURE_ADDR_WIDTH = $clog2(P_FEATURE_MEMORY_SIZE / P_BINDWIDTH);
+  // 当前支持的最大展开量为 32*32*4*4=16384 个 chunk。额外保留 1 bit，
+  // 用于 normal 最后一拍 cut_num+1，以及 residual 进入 CONV2 后再取 cut_num-1。
+  // 旧实现把该路径全部写成 64 bit，导致 Vivado 在 SRAM 地址前构造超宽算术网络。
+  localparam int CUT_NUM_WIDTH = (FEATURE_ADDR_WIDTH + 5 < 15) ?
+                                 15 : FEATURE_ADDR_WIDTH + 5;
 
   localparam logic [1:0] CALC_NORMAL   = 2'b00;
   localparam logic [1:0] CALC_RESIDUAL = 2'b01;
@@ -87,22 +92,25 @@ module Ctrl #(
   logic [5:0]  output_hw;
   logic [2:0]  input_groups;
   logic [2:0]  output_groups;
+  logic [1:0]  input_group_shift;   // IG=1/2/4 对应右移或左移 0/1/2 bit
+  logic [1:0]  output_group_shift;  // OG=1/2/4 对应 0/1/2 bit
+  logic [2:0]  total_group_shift;   // log2(IG*OG)，范围 0..4
   // 每个输出像素包含 IG*OG 个 9-cycle chunk。
   // 必须能表示 4*4=16；若误写成 4 bit，16 会截断为 0，layer3 residual 永不完成。
-  logic [15:0] groups_per_pixel;
-  logic [15:0] pixels_per_group;   // 输出空间点数 Hout*Wout
-  logic [7:0]  cycles_per_chunk;   // 3x3 为 9，非 3x3 路径为 1
-  logic [15:0] weight_span;        // 当前指令在每个 WeightSRAM bank 中的循环跨度
+  logic [4:0]  groups_per_pixel;
+  logic [10:0] pixels_per_group;   // 输出空间点数 Hout*Wout，最大 1024
+  logic [3:0]  cycles_per_chunk;   // 3x3 为 9，非 3x3 路径为 1
+  logic [7:0]  weight_span;        // 最大 9*16+16/2=152
 
   // 主路径采用“扁平 token”顺序，而不是直观的三层 for 循环：
   //   cycle   ：当前 chunk 内的 kernel 相位 0..8；
   //   cut_num ：每完成一个 9-cycle chunk 加 1，是地址和组边界的规范索引；
   //   t/round ：只用于记录总进度和结束条件，不能拿它们重写数据展开顺序。
   // 若按变量名把 round/t 改写成标准 output-group/pixel 循环，会破坏权重文件顺序。
-  logic [63:0] cut_num;
-  logic [15:0] round;
-  logic [15:0] t;
-  logic [7:0]  cycle;
+  logic [CUT_NUM_WIDTH-1:0] cut_num;
+  logic [4:0]               round;
+  logic [10:0]              t;
+  logic [3:0]               cycle;
 
   logic [3:0] res_flag;    // CONV2 内 shortcut group 计数，IG=2/4 时长度为 1/2
   logic       CONV2_done;  // 防止同一主路径尾部重复进入 CONV2
@@ -115,12 +123,12 @@ module Ctrl #(
   logic                          out_write_en_d;
   logic [1:0]                    acc_instr_d;
 
-  logic [63:0] address_cut_num;       // 地址计算使用的稳定 cut_num
-  logic [63:0] pixel_index;           // 当前输出空间点编号
-  logic [63:0] row_skip_count;        // stride2/shortcut 的额外跨行次数
-  logic [63:0] main_center_addr;       // 主路径 3x3 中心地址
-  logic [63:0] shortcut_center_addr;   // residual 大 feature 的 stride2 采样地址
-  logic [63:0] completed_word_addr;    // 已完成的 64-channel 输出 word 地址
+  logic [CUT_NUM_WIDTH-1:0] address_cut_num;      // 地址计算使用的稳定 cut_num
+  logic [CUT_NUM_WIDTH-1:0] pixel_index;          // 当前输出空间点编号
+  logic [CUT_NUM_WIDTH-1:0] row_skip_count;       // stride2/shortcut 的额外跨行次数
+  logic [CUT_NUM_WIDTH-1:0] main_center_addr;      // 主路径 3x3 中心地址
+  logic [CUT_NUM_WIDTH-1:0] shortcut_center_addr;  // residual 大 feature 的 stride2 采样地址
+  logic [FEATURE_ADDR_WIDTH-1:0] completed_word_addr;
 
   logic chunk_first;           // 当前 chunk 是否为一个输出 word 的第一个 IG chunk
   logic chunk_last;            // 当前 chunk 是否为一个输出 word 的最后一个 IG chunk
@@ -148,6 +156,25 @@ module Ctrl #(
     endcase
   endfunction
 
+  function automatic logic [1:0] decode_group_shift(input logic [3:0] log_channels);
+    // IG/OG 仅支持 1/2/4，因此除法和乘法都可转换成 0/1/2 bit 移位。
+    case (log_channels)
+      4'd7:    decode_group_shift = 2'd1;
+      4'd8:    decode_group_shift = 2'd2;
+      default: decode_group_shift = 2'd0;
+    endcase
+  endfunction
+
+  function automatic logic [10:0] square_hw(input logic [5:0] hw);
+    // Hout 仅为 4/8/16/32。显式查表避免综合出 6x6 乘法器。
+    case (hw)
+      6'd4:    square_hw = 11'd16;
+      6'd8:    square_hw = 11'd64;
+      6'd16:   square_hw = 11'd256;
+      default: square_hw = 11'd1024;
+    endcase
+  endfunction
+
   function automatic logic [3:0] normalized_log_channels(
       input logic [3:0] log_channels
   );
@@ -159,8 +186,8 @@ module Ctrl #(
   endfunction
 
   function automatic logic is_first_chunk(
-      input logic [63:0] chunk,
-      input logic [ 2:0] groups
+      input logic [CUT_NUM_WIDTH-1:0] chunk,
+      input logic [                2:0] groups
   );
     // IG 只支持 1/2/4，因此可用低位判断代替通用取模电路。
     // first chunk 同时决定 accumulator LOAD 和前一 word 的写回窗口。
@@ -172,8 +199,8 @@ module Ctrl #(
   endfunction
 
   function automatic logic is_last_chunk(
-      input logic [63:0] chunk,
-      input logic [ 2:0] groups
+      input logic [CUT_NUM_WIDTH-1:0] chunk,
+      input logic [                2:0] groups
   );
     // residual 仅在一个输出 word 的全部 IG 主路径 chunk 完成后进入 CONV2。
     case (groups)
@@ -183,15 +210,53 @@ module Ctrl #(
     endcase
   endfunction
 
-  function automatic logic [63:0] word_addr_from_chunk(
-      input logic [63:0] chunk,
-      input logic [ 2:0] groups
+  function automatic logic [FEATURE_ADDR_WIDTH-1:0] word_addr_from_chunk(
+      input logic [CUT_NUM_WIDTH-1:0] chunk,
+      input logic [                2:0] groups
   );
     // 每 IG 个 chunk 生成一个物理输出 word，因此写地址为 cut_num/IG。
     case (groups)
-      3'd4:    word_addr_from_chunk = chunk >> 2;
-      3'd2:    word_addr_from_chunk = chunk >> 1;
-      default: word_addr_from_chunk = chunk;
+      3'd4:    word_addr_from_chunk = chunk[FEATURE_ADDR_WIDTH+1:2];
+      3'd2:    word_addr_from_chunk = chunk[FEATURE_ADDR_WIDTH:1];
+      default: word_addr_from_chunk = chunk[FEATURE_ADDR_WIDTH-1:0];
+    endcase
+  endfunction
+
+  function automatic logic [CUT_NUM_WIDTH-1:0] pixel_from_chunk(
+      input logic [CUT_NUM_WIDTH-1:0] chunk,
+      input logic [                2:0] group_shift
+  );
+    // IG*OG 只可能为 1/2/4/8/16。用固定移位 mux 替代 64 bit 动态除法器。
+    case (group_shift)
+      3'd1:    pixel_from_chunk = chunk >> 1;
+      3'd2:    pixel_from_chunk = chunk >> 2;
+      3'd3:    pixel_from_chunk = chunk >> 3;
+      3'd4:    pixel_from_chunk = chunk >> 4;
+      default: pixel_from_chunk = chunk;
+    endcase
+  endfunction
+
+  function automatic logic [CUT_NUM_WIDTH-1:0] row_skip_from_pixel(
+      input logic [CUT_NUM_WIDTH-1:0] pixel,
+      input logic [                2:0] encoded_hw
+  );
+    // 原公式为 pixel/(input_hw/2)。input_hw=8/16/32，对应固定右移 2/3/4 bit。
+    case (encoded_hw)
+      3'd3:    row_skip_from_pixel = pixel >> 2;
+      3'd4:    row_skip_from_pixel = pixel >> 3;
+      default: row_skip_from_pixel = pixel >> 4;
+    endcase
+  endfunction
+
+  function automatic logic [CUT_NUM_WIDTH-1:0] scale_by_groups(
+      input logic [CUT_NUM_WIDTH-1:0] value,
+      input logic [                2:0] groups
+  );
+    // 原公式为 value*IG。IG 仅为 1/2/4，固定移位保持地址序列完全一致。
+    case (groups)
+      3'd4:    scale_by_groups = value << 2;
+      3'd2:    scale_by_groups = value << 1;
+      default: scale_by_groups = value;
     endcase
   endfunction
 
@@ -213,11 +278,14 @@ module Ctrl #(
   // stride2 字段保留在协议中，但当前 residual 地址使用固定网络等价公式，
   // 不是任意 shape/stride 的通用实现。
   always_comb begin
-    input_hw        = decode_hw(log_in_hw);
-    input_groups    = decode_groups(log_in_c);
-    output_groups   = decode_groups(log_out_c);
-    groups_per_pixel = 16'(input_groups) * 16'(output_groups);
-    cycles_per_chunk = (kernel_size == 2'b11) ? 8'd9 : 8'd1;
+    input_hw          = decode_hw(log_in_hw);
+    input_groups      = decode_groups(log_in_c);
+    output_groups     = decode_groups(log_out_c);
+    input_group_shift = decode_group_shift(log_in_c);
+    output_group_shift = decode_group_shift(log_out_c);
+    total_group_shift = {1'b0, input_group_shift} + {1'b0, output_group_shift};
+    groups_per_pixel  = 5'd1 << total_group_shift;
+    cycles_per_chunk  = (kernel_size == 2'b11) ? 4'd9 : 4'd1;
 
     if ((calc_type == CALC_NORMAL) && stride1[1]) begin
       output_hw = input_hw >> 1;
@@ -225,22 +293,27 @@ module Ctrl #(
       output_hw = input_hw;
     end
 
-    pixels_per_group = output_hw * output_hw;
+    pixels_per_group = square_hw(output_hw);
 
     // normal：每个输出组读取 9*IG 个权重 word。
     // residual：每个输出组额外读取 IG/2 个 shortcut 权重 word。
     // weight_span 是全局连续权重地址的回卷点，算错会造成整层周期性权重错位。
-    weight_span = cycles_per_chunk * groups_per_pixel;
+    if (kernel_size == 2'b11) begin
+      weight_span = ({3'b000, groups_per_pixel} << 3) +
+                    {3'b000, groups_per_pixel};
+    end else begin
+      weight_span = {3'b000, groups_per_pixel};
+    end
     if (calc_type == CALC_RESIDUAL) begin
-      weight_span = weight_span + (groups_per_pixel >> 1);
+      weight_span = weight_span + ({3'b000, groups_per_pixel} >> 1);
     end
   end
 
   assign chunk_first = is_first_chunk(cut_num, input_groups);
   assign chunk_last  = is_last_chunk(cut_num, input_groups);
   assign completed_word_addr = word_addr_from_chunk(cut_num, input_groups);
-  assign final_chunk = (round == (groups_per_pixel - 1'b1)) &&
-                       (t == (pixels_per_group - 1'b1));
+  assign final_chunk = (round == (groups_per_pixel - 5'd1)) &&
+                       (t == (pixels_per_group - 11'd1));
   assign final_shortcut_cycle =
       (res_flag == (4'(input_groups >> 1) - 4'd1));
 
@@ -256,25 +329,25 @@ module Ctrl #(
       address_cut_num = cut_num - 1'b1;
     end
 
-    pixel_index = address_cut_num / groups_per_pixel;
+    pixel_index = pixel_from_chunk(address_cut_num, total_group_shift);
     if (stride1[1] || (calc_type == CALC_RESIDUAL)) begin
-      row_skip_count = pixel_index / (input_hw >> 1);
+      row_skip_count = row_skip_from_pixel(pixel_index, log_in_hw);
     end else begin
-      row_skip_count = 64'd0;
+      row_skip_count = '0;
     end
 
-    main_center_addr = pixel_index * input_groups;
+    main_center_addr = scale_by_groups(pixel_index, input_groups);
     if ((calc_type == CALC_NORMAL) && stride1[1]) begin
       // 固定网络的 stride2 等价式。常数 32 是输入 feature 每行的 word 数，
       // 只适用于文档列出的 32x64 和 16x128 等 shape。
-      main_center_addr = main_center_addr * 2 + 32 * row_skip_count;
+      main_center_addr = (main_center_addr << 1) + (row_skip_count << 5);
     end
 
-    shortcut_center_addr = 64'd0;
+    shortcut_center_addr = '0;
     if (calc_type == CALC_RESIDUAL) begin
       // residual shortcut 来自尺寸加倍、通道减半的旧 feature。
       // 此公式只对已验证的 layer2/layer3 residual 成立。
-      shortcut_center_addr = main_center_addr + 32 * (row_skip_count >> 1);
+      shortcut_center_addr = main_center_addr + ((row_skip_count >> 1) << 5);
     end
   end
 
@@ -523,11 +596,11 @@ module Ctrl #(
           // 使能在同一逻辑条件下直接更新，会产生一拍地址前移。
           if (act_write_en_d || out_write_en_d) begin
             if (pingpong) begin
-              act_write_addr_d <= completed_word_addr[FEATURE_ADDR_WIDTH-1:0];
+              act_write_addr_d <= completed_word_addr;
               out_write_addr_d <= '0;
             end else begin
               act_write_addr_d <= '0;
-              out_write_addr_d <= completed_word_addr[FEATURE_ADDR_WIDTH-1:0];
+              out_write_addr_d <= completed_word_addr;
             end
           end
 
@@ -537,7 +610,7 @@ module Ctrl #(
           if ((cut_num == 0) && (cycle == 0)) begin
             oBNAddr <= bn_base;
           end else if (oActWriteEn || oOutWriteEn) begin
-            if ((oBNAddr - bn_base) == (output_groups - 1'b1)) begin
+            if ((oBNAddr - bn_base) == ({2'b00, output_groups} - 5'd1)) begin
               oBNAddr <= bn_base;
             end else begin
               oBNAddr <= oBNAddr + 1'b1;

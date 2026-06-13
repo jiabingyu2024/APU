@@ -211,14 +211,17 @@ Ctrl 端口：
 | `output_hw` | 输出 H/W 实际值 | normal 根据 stride，residual 等于 `input_hw` |
 | `input_groups` | 输入 64-channel 组数 IG | `Cin/64` |
 | `output_groups` | 输出 64-channel 组数 OG | `Cout/64` |
-| `groups_per_pixel` | 每个输出像素的 chunk 数 | `IG*OG`，必须能表示 16 |
-| `pixels_per_group` | 输出空间点总数 | `Hout*Wout` |
-| `cycles_per_chunk` | 每个 chunk 周期数 | 3x3 为 9，1x1 为 1 |
-| `weight_span` | 权重地址总跨度 | normal=`9*IG*OG`；residual=`OG*(9*IG+IG/2)` |
-| `cycle` | 当前 chunk 内周期 | 3x3 时 0..8 |
-| `cut_num` | 已完成/正在执行的线性 chunk 编号 | 地址、输出组和写回边界的核心索引 |
-| `t` | 总进度辅助计数 | 0..`pixels_per_group-1`，只用于结束判断 |
-| `round` | 总进度外层辅助计数 | 0..`groups_per_pixel-1`，只用于结束判断 |
+| `input_group_shift` | `log2(IG)` | IG=1/2/4 时为 0/1/2，用于把乘除法改成移位 |
+| `output_group_shift` | `log2(OG)` | OG=1/2/4 时为 0/1/2 |
+| `total_group_shift` | `log2(IG*OG)` | 范围 0..4，`cut_num >> total_group_shift` 得到像素编号 |
+| `groups_per_pixel` | 每个输出像素的 chunk 数，5 bit | `1 << total_group_shift`，可表示最大值 16 |
+| `pixels_per_group` | 输出空间点总数，11 bit | 通过 4/8/16/32 查表得到 16/64/256/1024 |
+| `cycles_per_chunk` | 每个 chunk 周期数，4 bit | 3x3 为 9，1x1 为 1 |
+| `weight_span` | 权重地址总跨度，8 bit | normal=`9*IG*OG`；residual=`OG*(9*IG+IG/2)`，最大 152 |
+| `cycle` | 当前 chunk 内周期，4 bit | 3x3 时 0..8 |
+| `cut_num` | 线性 chunk 编号，默认 15 bit | 地址、输出组和写回边界的核心索引 |
+| `t` | 总进度辅助计数，11 bit | 0..`pixels_per_group-1`，只用于结束判断 |
+| `round` | 总进度外层辅助计数，5 bit | 0..`groups_per_pixel-1`，只用于结束判断 |
 | `res_flag` | residual shortcut 拍编号 | layer2 为 0；layer3 为 0、1 |
 | `CONV2_done` | CONV2 已执行标志 | 防止同一主路径边界重复跳入 CONV2 |
 
@@ -256,10 +259,15 @@ Ctrl 端口：
 | --- | --- |
 | `decode_hw` | 把 `log_in_hw` 解码成实际 H/W |
 | `decode_groups` | 把 `log2(C)` 解码成 `C/64` |
+| `decode_group_shift` | 把 `log2(C)` 解码成组数的移位量 0/1/2 |
+| `square_hw` | 查表得到 `Hout*Wout`，避免综合平方乘法器 |
 | `normalized_log_channels` | 对非法通道编码回落到 log2(64)=6 |
 | `is_first_chunk` | 判断当前 chunk 是否为输出 word 的第一个 chunk |
 | `is_last_chunk` | 判断当前 chunk 是否为输出 word 的最后一个 chunk |
-| `word_addr_from_chunk` | 执行 `cut_num/IG`，得到输出 word 地址 |
+| `word_addr_from_chunk` | 用位切片执行 `cut_num/IG`，得到输出 word 地址 |
+| `pixel_from_chunk` | 用固定右移执行 `cut_num/(IG*OG)` |
+| `row_skip_from_pixel` | 用固定右移执行 `pixel/(input_hw/2)` |
+| `scale_by_groups` | 用固定左移执行 `pixel*IG` |
 
 函数形参：`encoded_hw` 表示尚未解码的 H/W 编码；`log_channels` 表示通道数的
 log2 编码；`chunk` 表示待判断的线性 chunk 编号；`groups` 表示 IG。
@@ -357,6 +365,15 @@ term = chunk*9 + cycle
 k    = term / IG
 ig   = term % IG
 ```
+
+这些是算法语义公式，不表示 RTL 中仍存在通用除法器。由于 IG、OG 只能为 1、2、4，
+当前实现先得到 `total_group_shift=log2(IG*OG)`，再执行：
+
+```text
+p = cut_num >> total_group_shift
+```
+
+综合结果是固定移位选择器，而不是由 `cut_num` 驱动的动态除法网络。
 
 因此物理执行顺序仍等价于：
 
@@ -930,8 +947,62 @@ IG*OG     = 4*4 = 16
 总 chunk  = 1024
 ```
 
-`groups_per_pixel` 必须至少 5 bit。当前使用 16 bit；若使用 4 bit，16 会截断为 0，
+`groups_per_pixel` 必须至少 5 bit。当前正好使用 5 bit；若使用 4 bit，16 会截断为 0，
 `final_chunk` 永远不能成立，仿真会停在第三次 `run_apu()`。
+
+### 9.1 `cut_num` 到 SRAM 地址的等价时序优化
+
+优化前的地址生成虽然公式正确，但实现使用了 64 bit 中间量和动态除法：
+
+```text
+cut_num[63:0]
+-> CONV2 减一/选择
+-> / (IG*OG)
+-> / (input_hw/2)
+-> * IG、*2、*32 和加法
+-> 取低 10 bit 送 FeatureProcessor
+```
+
+Vivado 报告的关键路径正是从 `cut_num_reg` 到
+`featureMemory_data_out_reg`。Ctrl 的超宽组合算术还会与 FeatureProcessor 内部的
+地址计算串联，形成很长的单周期路径。
+
+当前实现保持所有数学结果和周期相位不变，只改变硬件表达形式：
+
+```text
+cut_num[14:0]
+-> CONV2 减一/选择
+-> 按 total_group_shift 固定右移 0..4 bit
+-> 按 log_in_hw 固定右移 2/3/4 bit
+-> 按 IG 固定左移 0/1/2 bit
+-> 移位加法
+-> 取低 10 bit 送 FeatureProcessor
+```
+
+关键等价关系：
+
+```text
+IG*OG = 1/2/4/8/16  -> 除法等价于右移 0/1/2/3/4 bit
+input_hw/2 = 4/8/16 -> 除法等价于右移 2/3/4 bit
+pixel*IG            -> 左移 0/1/2 bit
+9*groups            -> (groups<<3)+groups
+32*row              -> row<<5
+```
+
+没有增加地址寄存器，也没有增加 `PREFILL` 或 `DRAIN` 周期，因此以下行为没有变化：
+
+- `oActReadCenterAddr/oOutReadCenterAddr` 每拍地址序列；
+- CONV 与 CONV2 的切换位置；
+- WeightAddr 和 BNAddr 推进顺序；
+- `acc_instr_d -> oAccInstr` 延迟；
+- 写回使能和最后一个 word 的尾写时机；
+- `oComputeDone` 的产生周期。
+
+默认参数下 `CUT_NUM_WIDTH=15`。这是因为理论最大展开量为
+`32*32*4*4=16384`，还要允许最后主路径时钟沿临时执行一次 `cut_num+1`。
+若删掉这一个额外表示位，最大配置在结束边界会回卷，residual 的 `cut_num-1` 地址也会错误。
+
+本次修改后的 Verilator 全网络回归和 `make check` 六项输出比较均为 0 mismatch。
 
 ## 10. 常见错误与自检清单
 

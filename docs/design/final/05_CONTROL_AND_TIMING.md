@@ -40,10 +40,10 @@ CONV2 --last output complete-------> IDLE + ComputeDone + pingpong toggle
 | 名称 | 宽度 | 实际用途 |
 | --- | ---: | --- |
 | `pingpong` | 1 | 当前主路径 SRAM 方向 |
-| `cycle` | 8 | 当前 9-cycle chunk 内相位；IG=1 时才等同 kernel |
-| `cut_num` | 64 | 每完成一个 9-cycle chunk 加 1；驱动像素/组/地址 |
-| `round` | 16 | 总循环结束辅助计数，范围 `totalRound` |
-| `t` | 16 | 总循环结束辅助计数，范围 `timePerRound` |
+| `cycle` | 4 | 当前 9-cycle chunk 内相位；IG=1 时才等同 kernel |
+| `cut_num` | 默认 15 | 每完成一个 9-cycle chunk 加 1；驱动像素/组/地址 |
+| `round` | 5 | 总循环结束辅助计数，范围 `IG*OG` |
+| `t` | 11 | 总循环结束辅助计数，范围 `Hout*Wout` |
 | `res_flag` | 4 | CONV2 内 shortcut word 计数 |
 | `CONV2_done` | 1 | 抑制同一 main block 重复跳入 CONV2 |
 | `oWeightAddr` | 8 | 当前每个 bank 共用的读地址 |
@@ -92,6 +92,15 @@ IG=4 -> cut_num >> 2
 ```
 
 语义上等价于 `p*OG+og`。
+
+RTL 实现不使用通用 `/` 或 `%` 计算这些结果。因为 IG、OG 都是 1/2/4：
+
+```text
+total_group_shift = log2(IG) + log2(OG)
+p = cut_num >> total_group_shift
+```
+
+写地址同样使用固定 bit slice。这里保留除法写法只是为了说明算法含义。
 
 ## 5. 主路径中心地址
 
@@ -280,7 +289,47 @@ canonical 含义是反序，转换由参数布局和 dump adapter共同承担。
 步骤 4 是 layer2 residual 首 word 修复点。删掉后只有首项可能错误，容易被误判为
 BN 或边界问题。
 
-## 13. 推荐的等价重构
+## 13. 当前等价时序优化
+
+Vivado 已确认 Ctrl 的关键路径起点为 `cut_num_reg`，终点为
+`featureMemory_data_out_reg`。优化前 Ctrl 在一个周期中执行：
+
+```text
+64 bit cut_num
+-> 动态除以 IG*OG
+-> 动态除以 input_hw/2
+-> 宽乘法和加法
+-> FeatureProcessor 地址计算
+-> featureMemory_data_out_reg
+```
+
+当前实现利用所有合法参数都是 2 的幂，将 Ctrl 部分改为：
+
+```text
+15 bit cut_num
+-> 固定右移选择
+-> 固定右移选择
+-> 固定左移和加法
+-> FeatureProcessor 地址计算
+-> featureMemory_data_out_reg
+```
+
+同时做了以下收窄：
+
+- `groups_per_pixel`：16 bit -> 5 bit；
+- `pixels_per_group`：16 bit -> 11 bit；
+- `weight_span`：16 bit -> 8 bit；
+- `cycle/round/t`：8/16/16 bit -> 4/5/11 bit；
+- 地址计算中间量：64 bit -> 默认 15 bit。
+
+没有插入新寄存器，因此计算周期数、SRAM 地址序列、累加控制、写回和
+`ComputeDone` 时刻均保持不变。Verilator 全网络回归正常结束，六项参考输出均为
+0 mismatch。
+
+FeatureProcessor 内部仍有中心地址到 row/col 的组合运算，因此完成本次 Ctrl 优化后，
+需要重新查看 Vivado 最差路径，确认瓶颈是否已经转移到 FeatureProcessor 内部。
+
+## 14. 推荐的后续等价重构
 
 为了可综合性和可维护性，可以把当前控制重构为：
 
