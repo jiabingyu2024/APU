@@ -1,4 +1,5 @@
 VERILATOR ?= verilator
+PYTHON ?= python3
 
 TOP       := tb_top
 BUILD_ROOT := build
@@ -37,7 +38,7 @@ run: $(SIM) | $(SIM_OUT_DIR)
 
 check: run
 	./$(SIM) +LAYER1_ONLY
-	python3 scripts/compare_outputs.py
+	$(PYTHON) scripts/compare_outputs.py
 
 soc-toolchain-check:
 	$(MAKE) -C soc toolchain-check

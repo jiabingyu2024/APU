@@ -1,4 +1,5 @@
 VERILATOR ?= verilator
+PYTHON ?= python3
 TOOLCHAIN_PREFIX ?= riscv64-unknown-elf-
 
 CC      := $(TOOLCHAIN_PREFIX)gcc
@@ -44,11 +45,18 @@ RTL_SRCS := \
 	$(RTL_DIR)/riscv_apu_board_top.sv \
 	$(sort $(wildcard ../rtl/*.sv))
 
-.PHONY: all toolchain-check model firmware bridge-sim bridge-check uart-sim uart-check sim run check clean
+.PHONY: all asset-toolchain-check toolchain-check model firmware bridge-sim bridge-check uart-sim uart-check sim run check clean
 
 all: check
 
+asset-toolchain-check:
+	$(PYTHON) --version
+	$(CC) --version
+	$(OBJCOPY) --version
+	$(OBJDUMP) --version
+
 toolchain-check:
+	$(PYTHON) --version
 	$(CC) --version
 	$(OBJCOPY) --version
 	$(VERILATOR) --version
@@ -57,7 +65,7 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 $(MODEL_STAMP): $(MODEL_SCRIPT) $(MODEL_INPUTS) | $(BUILD_DIR)
-	python3 $(MODEL_SCRIPT) --root .. --hex $(MODEL_HEX) --header $(MODEL_HEADER)
+	$(PYTHON) $(MODEL_SCRIPT) --root .. --hex $(MODEL_HEX) --header $(MODEL_HEADER)
 	touch $@
 
 $(MODEL_HEX) $(MODEL_HEADER): $(MODEL_STAMP)
@@ -73,7 +81,7 @@ $(FW_BIN): $(FW_ELF)
 	$(OBJCOPY) -O binary $< $@
 
 $(FW_HEX): $(FW_BIN)
-	python3 ../third_party/picorv32/firmware/makehex.py $< 16384 > $@
+	$(PYTHON) ../third_party/picorv32/firmware/makehex.py $< 16384 > $@
 
 firmware: $(FW_HEX)
 

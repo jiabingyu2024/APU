@@ -39,5 +39,12 @@ make -C fpga project
 make -C fpga bitstream JOBS=4
 ```
 
+Windows Vivado + WSL RISC-V 工具链组合建议使用：
+
+```text
+WSL:        make -C soc firmware model
+PowerShell: make -C fpga bitstream-prebuilt VIVADO=vivado.bat JOBS=4
+```
+
 Vivado 输出位于 `fpga/output/`。本机当前未安装 Vivado，因此仓库内已经完成脚本和
 RTL/约束准备，但仍需在装有 Vivado 的电脑上执行综合、实现和生成 bitstream。

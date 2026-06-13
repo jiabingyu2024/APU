@@ -177,6 +177,83 @@ fpga/build/vivado/riscv_apu_pynq_z2.xpr
 脚本自动完成器件选择、RTL 文件加入、hex 类型设置、XDC 加入、顶层设置和权重 RAM 宏
 定义。需要 GUI 查看时打开该 `.xpr`，不要另建一份配置不同的工程。
 
+### 5.1 Windows 的 `错误 9009`
+
+若 PowerShell 输出：
+
+```text
+python3 tools/build_model_image.py ...
+make[1]: *** [build/model.stamp] 错误 9009
+```
+
+表示 Windows 找不到 `python3.exe`，尚未进入 Vivado。先检查：
+
+```powershell
+python --version
+py -3 --version
+```
+
+若 `python` 可用：
+
+```powershell
+make -C fpga project PYTHON=python VIVADO=vivado.bat
+```
+
+若只有 Windows Python Launcher `py` 可用，变量值包含空格，必须作为一个参数传给 make：
+
+```powershell
+make -C fpga project 'PYTHON=py -3' VIVADO=vivado.bat
+```
+
+可以先检查完整环境：
+
+```powershell
+make -C fpga environment-check 'PYTHON=py -3' VIVADO=vivado.bat
+```
+
+该检查还会验证 `riscv64-unknown-elf-gcc/objcopy/objdump`。Python 修好后若继续提示
+`riscv64-unknown-elf-gcc` 找不到，说明 Windows 没有安装 RISC-V 裸机工具链。
+
+### 5.2 推荐：WSL 生成软件，Windows 运行 Vivado
+
+Vivado 通常安装在 Windows，而当前 RISC-V GCC 已安装在 WSL。无需再为 Windows 安装
+一套 RISC-V 工具链，可以按下面分工。
+
+先在 WSL 中进入同一个 E 盘工程：
+
+```bash
+cd /mnt/e/Resources/01_lessons/class2_NS/APU/finalTest/prj/APU
+make -C soc firmware model
+```
+
+确认生成：
+
+```text
+soc/build/firmware.hex
+soc/build/model.hex
+```
+
+再回到 Windows PowerShell，跳过软件重建：
+
+```powershell
+cd E:\Resources\01_lessons\class2_NS\APU\finalTest\prj\APU
+make -C fpga project-prebuilt VIVADO=vivado.bat
+make -C fpga bitstream-prebuilt VIVADO=vivado.bat JOBS=4
+```
+
+`project-prebuilt/bitstream-prebuilt` 不调用 Python 或 RISC-V GCC，但 Tcl 会检查两个 hex 是否
+存在。修改 C、模型参数或数据后，必须先回 WSL 重新生成 hex，再重新生成 bitstream。
+
+如果 Vivado 尚未加入 PATH，可传完整路径，建议使用正斜杠：
+
+```powershell
+make -C fpga project-prebuilt `
+  'VIVADO=D:/Xilinx/Vivado/2023.2/bin/vivado.bat'
+```
+
+将版本号和安装目录替换为实际值。若安装在带空格的目录，优先先运行 Vivado 的环境设置
+脚本把 `vivado.bat` 加入 PATH，再使用 `VIVADO=vivado.bat`。
+
 ## 6. GUI 手工创建步骤
 
 1. `Create Project`，选择 `RTL Project`。
