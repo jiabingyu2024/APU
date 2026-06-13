@@ -39,6 +39,7 @@ APU/
 |   `-- data_flow/           # 软件模型各层 golden 输出
 |-- docs/                    # 架构、设计、仿真和历史问题文档
 |-- soc/                     # PicoRV32 + APU 的 PL-only SoC、固件、模型打包和测试
+|-- fpga/                    # PYNQ-Z2 顶层、XDC、Vivado Tcl 和上板辅助脚本
 |-- third_party/picorv32/    # PicoRV32 上游源码（git submodule）
 `-- build/                   # 自动生成的 Verilator 产物、波形和仿真输出
 ```
@@ -136,9 +137,24 @@ APU ZERO CONV PASS
 SOC PREBOARD PASS
 ```
 
-SoC 实施细节见 [docs/soc/README.md](docs/soc/README.md)。当前仅剩 Vivado、XDC、
-时钟/复位管脚、资源与时序检查以及实际板卡下载，清单见
-[Vivado 与上板](docs/soc/07_VIVADO_BOARD_REMAINING.md)。
+SoC 实施细节见 [docs/soc/README.md](docs/soc/README.md)。
+
+### 7. 创建 PYNQ-Z2 Vivado 工程
+
+在安装了 Vivado 的环境中执行：
+
+```bash
+make -C fpga project
+make -C fpga bitstream JOBS=4
+```
+
+脚本使用纯 PL 顶层，不实例化 Zynq Processing System；输出和报告位于
+`fpga/output/`。完整步骤、PYNQ 下载方式、外部 PL UART 接线和 ARM/PS 验收边界见
+[FPGA 上板文档](docs/fpga/README.md)。
+
+初步上板频率为 25 MHz，由 H16 的 125 MHz 输入经 PL 内 MMCM 产生。最终验收在加载
+bit 后通过 `fpga/xsct/disable_arm_cores.tcl` 将两个 Cortex-A9 同时保持复位并停止时钟，
+再按 BTN0 重新运行 PicoRV32 固件。
 
 ## 常用定位入口
 

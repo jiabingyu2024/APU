@@ -14,7 +14,13 @@ module WeightSRAM #(
     output logic [P_BITWIDTH-1:0] oDataa
 );
 
-  reg [ P_BITWIDTH - 1: 0 ] rData [ P_WORDS - 1: 0 ];
+`ifdef FPGA_DISTRIBUTED_WEIGHT_RAM
+  // PYNQ-Z2 的 BRAM 主要留给模型 ROM。该宏仅由 FPGA 工程定义，ASIC/仿真
+  // 默认行为不变；综合时将每个计算核的 256x64 权重存储映射到 LUTRAM。
+  (* ram_style = "distributed" *) reg [P_BITWIDTH-1:0] rData [P_WORDS-1:0];
+`else
+  reg [P_BITWIDTH-1:0] rData [P_WORDS-1:0];
+`endif
   always @(posedge clk) begin
     if (!nWe) begin // 写使能有效
     rData[iAddrb] <= iData;

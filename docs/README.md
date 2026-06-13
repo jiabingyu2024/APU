@@ -85,6 +85,17 @@
 | [完整网络预上板](soc/06_FULL_NETWORK_PREBOARD.md) | 模型 ROM、12-op 参数映射、完整推理、golden 对拍和 UART 顶层 |
 | [Vivado/上板剩余清单](soc/07_VIVADO_BOARD_REMAINING.md) | 器件、XDC、时钟、资源、时序、ARM PS 禁用和板级验收 |
 
+## FPGA 上板
+
+| 文档 | 简介 |
+| --- | --- |
+| [PYNQ-Z2 上板索引](fpga/README.md) | 上板文档顺序和配套工程文件入口 |
+| [Vivado 工程与 Bitstream](fpga/01_VIVADO_PROJECT_AND_BITSTREAM.md) | 工程创建、源文件、初始化文件、约束、资源和时序检查 |
+| [PYNQ 下载与 C 程序验证](fpga/02_PYNQ_DEPLOY_AND_C_PROGRAM_VERIFY.md) | PYNQ/JTAG 下载、PL UART、LED 和 RISC-V 执行证据 |
+| [验收与故障排查](fpga/03_ACCEPTANCE_AND_TROUBLESHOOTING.md) | ARM 边界、BRAM/时序、UART 和 trap 排查 |
+| [PYNQ-Z2 资源占用初评](fpga/04_RESOURCE_ESTIMATE.md) | BRAM、LUTRAM、计算阵列、FF 和综合推断风险估算 |
+| [PYNQ-Z2 管脚参考](fpga/PIN.md) | 时钟、按钮、LED、Pmod 和 PS MIO 管脚 |
+
 ## 历史问题与修复记录
 
 以下文档用于追溯 bug 现象、定位证据和修复过程，不代表当前规范：

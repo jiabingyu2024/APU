@@ -94,8 +94,9 @@ physical_index = pixel*4 + (3-canonical_group)
 - console `STATUS` 根据 `tx_ready` 对固件施加背压；
 - `trap_o`、`done_o`、`apu_done_o` 板级观察信号。
 
-SoC 顶层没有实例化 Zynq Processing System IP。ARM PS 是否在目标板上保持未配置/复位，
-以及相应验收截图，属于 Vivado 和上板阶段。
+SoC 顶层没有实例化 Zynq Processing System IP。PYNQ-Z2 最终上板将通过 XSCT 写
+`A9_CPU_RST_CTRL=0x00000033`，使两个 Cortex-A9 同时保持复位并停止时钟；实际写入结果
+和相应截图仍属于 Vivado 和上板阶段。
 
 ## 7. 回归证据
 

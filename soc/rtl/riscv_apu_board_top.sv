@@ -14,7 +14,8 @@ module riscv_apu_board_top #(
     output logic apu_done_o
 );
 
-  logic [1:0] reset_sync_q;
+  // 异步按键复位进入时钟域后同步释放，便于 Vivado 正确放置同步寄存器。
+  (* ASYNC_REG = "TRUE" *) logic [1:0] reset_sync_q;
   logic       resetn;
   logic       console_tx_ready;
   logic       console_tx_valid;

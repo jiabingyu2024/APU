@@ -1,7 +1,9 @@
 // Read-only 512 KiB model store. Vivado can infer initialized block RAM from
 // the same readmemh image used by Verilator; board-specific storage is deferred.
 module model_rom #(
-    parameter int WORDS = 128 * 1024,
+    // 当前模型镜像实际包含 90,880 个 32-bit 字。按实际深度综合可显著减少
+    // XC7Z020 上的 BRAM 占用；模型布局变化时必须同步更新该参数。
+    parameter int WORDS = 90_880,
     parameter string INIT_FILE = "soc/build/model.hex"
 ) (
     input  logic        clk,
