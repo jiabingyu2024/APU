@@ -14,7 +14,9 @@ Zynq Processing System IP。
    - ARM/PS 验收边界、资源与时序问题、无串口输出等常见故障排查。
 4. [04_RESOURCE_ESTIMATE.md](04_RESOURCE_ESTIMATE.md)
    - XC7Z020 资源上限、当前设计的 BRAM/LUT/FF 粗估和综合风险。
-5. [PIN.md](PIN.md)
+5. [05_BIT_TO_ARM_DISABLED_ACCEPTANCE.md](05_BIT_TO_ARM_DISABLED_ACCEPTANCE.md)
+   - 面向第一次上板：从 bit 下载、USB-TTL 两线接法到 XSCT 禁用双 ARM 的完整步骤。
+6. [PIN.md](PIN.md)
    - PYNQ-Z2 管脚、时钟、按钮、LED、Pmod 和 PS MIO 参考。
 
 配套工程文件位于：
