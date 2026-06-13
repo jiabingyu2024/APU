@@ -17,28 +17,32 @@ module model_rom #(
 
   localparam int ADDR_WIDTH = $clog2(WORDS);
 
-  logic [31:0] mem [0:WORDS-1];
-  logic [ADDR_WIDTH-1:0] addr_q;
-  logic                  pending_q;
-  logic                  write_q;
+  // 标准同步读 ROM 模板，确保 355 KiB 模型映射到 Block RAM，而不是被
+  // Vivado 尝试拆成 LUT/FF。
+  (* ram_style = "block" *) logic [31:0] mem [0:WORDS-1];
+  logic [31:0] req_rdata_q;
+  logic        pending_q;
 
   initial begin
     if (INIT_FILE != "") $readmemh(INIT_FILE, mem);
   end
 
   assign req_ready = pending_q;
-  assign req_rdata = write_q ? 32'hbad0_4000 : mem[addr_q];
+  assign req_rdata = req_rdata_q;
+
+  always_ff @(posedge clk) begin
+    if (req_valid && !pending_q) begin
+      req_rdata_q <= |req_wstrb ? 32'hbad0_4000 :
+                     mem[req_addr[ADDR_WIDTH+1:2]];
+    end
+  end
 
   always_ff @(posedge clk or negedge resetn) begin
     if (!resetn) begin
-      addr_q    <= '0;
       pending_q <= 1'b0;
-      write_q   <= 1'b0;
     end else if (pending_q) begin
       pending_q <= 1'b0;
     end else if (req_valid) begin
-      addr_q    <= req_addr[ADDR_WIDTH+1:2];
-      write_q   <= |req_wstrb;
       pending_q <= 1'b1;
     end
   end
