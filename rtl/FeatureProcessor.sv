@@ -45,7 +45,7 @@ module FeatureProcessor #(
 
   integer i;
 
-  always_ff @(posedge clk or negedge nRst) begin
+  always_ff @(posedge clk) begin
     if (!nWe) begin
       featureMemory[iWriteAddr] <= iWriteData;
     end
