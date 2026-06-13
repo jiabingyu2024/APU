@@ -72,6 +72,19 @@
 | [RISC-V 全自主 SoC + APU 实施指南](explore/RISCV_SOC_APU_PROJECT_GUIDE.md) | 面向大三课程项目的 PicoRV32 选型、SoC 架构、总线桥、裸机工具链、模型搬运、FPGA 上板和分阶段验收路线 |
 | [PicoRV32 克隆后学习与接入 APU](explore/PICORV32_CLONE_TO_APU_INTEGRATION.md) | 克隆后的阅读顺序、官方测试、第三方 IP 管理、CPU+BRAM 最小系统、native 总线、AHB bridge 和逐步接入现有 APU 的操作手册 |
 
+## RISC-V SoC 实施记录
+
+| 文档 | 简介 |
+| --- | --- |
+| [SoC 文档总索引](soc/README.md) | 当前完成度、运行入口和各阶段文档导航 |
+| [阶段 1 规格与地址空间](soc/01_SOC_SPEC.md) | PicoRV32 配置、内存映射、寄存器和验收条件 |
+| [阶段 1 RTL 架构与时序](soc/02_RTL_ARCHITECTURE.md) | native 总线、模块职责、正常/异常事务时序和 APU 接入边界 |
+| [阶段 1 仿真记录](soc/03_STAGE1_BRINGUP_LOG.md) | 工具版本、构建产物、测试日志、问题修复和阶段结论 |
+| [阶段 2 APU 总线桥](soc/04_STAGE2_APU_BRIDGE.md) | PicoRV32 native 到 APU AHB 的状态机、地址转换、MMIO 驱动和回归结果 |
+| [阶段 3 最小真实计算](soc/05_STAGE3_MINIMAL_APU_RUN.md) | RISC-V 启动 APU、轮询 CPL、尾写 fence 和确定性卷积检查 |
+| [完整网络预上板](soc/06_FULL_NETWORK_PREBOARD.md) | 模型 ROM、12-op 参数映射、完整推理、golden 对拍和 UART 顶层 |
+| [Vivado/上板剩余清单](soc/07_VIVADO_BOARD_REMAINING.md) | 器件、XDC、时钟、资源、时序、ARM PS 禁用和板级验收 |
+
 ## 历史问题与修复记录
 
 以下文档用于追溯 bug 现象、定位证据和修复过程，不代表当前规范：

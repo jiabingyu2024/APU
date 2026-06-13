@@ -38,6 +38,8 @@ APU/
 |   |-- param_files/         # 输入、卷积权重和 BN/SIMD 参数
 |   `-- data_flow/           # 软件模型各层 golden 输出
 |-- docs/                    # 架构、设计、仿真和历史问题文档
+|-- soc/                     # PicoRV32 + APU 的 PL-only SoC、固件、模型打包和测试
+|-- third_party/picorv32/    # PicoRV32 上游源码（git submodule）
 `-- build/                   # 自动生成的 Verilator 产物、波形和仿真输出
 ```
 
@@ -115,6 +117,29 @@ make clean
 
 该命令删除整个 `build/`。之后再次执行 `make` 会完整重编译。
 
+### 6. 运行 RISC-V 全自主 SoC
+
+```bash
+make soc-toolchain-check
+make soc-firmware
+make soc-bridge-check
+make soc-uart-check
+CCACHE_DISABLE=1 make soc-check
+```
+
+该回归在开发电脑上把参数文本打包为 363520-byte `model.hex`，交叉编译 RV32IMC 固件，
+随后由 PicoRV32 自主装载并执行完整 12-op APU 网络。成功日志包含：
+
+```text
+APU FULL NETWORK PASS
+APU ZERO CONV PASS
+SOC PREBOARD PASS
+```
+
+SoC 实施细节见 [docs/soc/README.md](docs/soc/README.md)。当前仅剩 Vivado、XDC、
+时钟/复位管脚、资源与时序检查以及实际板卡下载，清单见
+[Vivado 与上板](docs/soc/07_VIVADO_BOARD_REMAINING.md)。
+
 ## 常用定位入口
 
 | 目标 | 建议先看 |
@@ -135,4 +160,3 @@ make clean
 3. 控制器、地址映射、通道组顺序或 residual 路径变化必须执行完整 `make check`。
 4. `build/` 是生成目录，不应作为设计源文件维护；关键结论应记录到 `docs/`。
 5. `docs/archive/` 只用于问题追溯，若与 `docs/design/final/` 冲突，以后者为准。
-

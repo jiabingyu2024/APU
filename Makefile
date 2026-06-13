@@ -22,7 +22,7 @@ VERILATOR_FLAGS := \
 	-Wno-fatal \
 	-CFLAGS "-std=c++17"
 
-.PHONY: all run check clean
+.PHONY: all run check soc-toolchain-check soc-firmware soc-bridge-check soc-uart-check soc-check clean
 
 all: $(SIM)
 
@@ -39,5 +39,21 @@ check: run
 	./$(SIM) +LAYER1_ONLY
 	python3 scripts/compare_outputs.py
 
+soc-toolchain-check:
+	$(MAKE) -C soc toolchain-check
+
+soc-firmware:
+	$(MAKE) -C soc firmware
+
+soc-bridge-check:
+	$(MAKE) -C soc bridge-check
+
+soc-uart-check:
+	$(MAKE) -C soc uart-check
+
+soc-check:
+	$(MAKE) -C soc check
+
 clean:
 	rm -rf $(BUILD_ROOT)
+	$(MAKE) -C soc clean
