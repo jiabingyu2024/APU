@@ -1,0 +1,22 @@
+{
+  "design": "apu_dma",
+  "protocol_version": 1,
+  "interfaces": {
+    "job_input": "AXI4-Stream 64-bit slave",
+    "result_output": "AXI4-Stream 64-bit master",
+    "control": "AXI4-Lite 32-bit slave",
+    "clock_hz": 100000000
+  },
+  "memory_contract": {
+    "act_words_64": 1024,
+    "out_words_64": 1024,
+    "weight_banks": 64,
+    "weight_words_64_per_bank": 256,
+    "bn_banks": 64,
+    "bn_words_32_per_bank": 32,
+    "instruction_words_32": 16,
+    "safe_instruction_limit": 15
+  },
+  "packet_spec": "docs/dma/04_STREAM_PACKET_PROTOCOL.md"
+}
+

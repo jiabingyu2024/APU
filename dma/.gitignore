@@ -1,0 +1,10 @@
+**/__pycache__/
+*.pyc
+vivado/project/
+vivado/ip_repo/
+vivado/.Xil/
+vivado/*.jou
+vivado/*.log
+overlay/*.bit
+overlay/*.hwh
+

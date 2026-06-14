@@ -1,0 +1,32 @@
+{
+  "design": "apu_dma",
+  "top_module": "apu_dma_top",
+  "implementation_order": [
+    "apu_dma_pkg",
+    "axis_job_decoder",
+    "apu_stream_loader",
+    "axis_result_streamer",
+    "apu_job_ctrl",
+    "apu_dma_perf_counters",
+    "apu_dma_axil_regs",
+    "apu_dma_core",
+    "apu_dma_top"
+  ],
+  "ownership": {
+    "load_phase": "stream loader owns write ports; APU core is idle",
+    "run_phase": "APU control owns feature reads/writes and weight reads; stream loader is blocked",
+    "result_phase": "result streamer owns one feature read port while APU core is idle"
+  },
+  "clocking": {
+    "domains": 1,
+    "clock_hz": 100000000,
+    "cdc_required": false
+  },
+  "risks": [
+    "WorkSheet counts write transactions and requires contiguous address-zero programming",
+    "FeatureProcessor and WeightSRAM reads are synchronous with one-cycle latency",
+    "APU computation and DMA loading must not access the same memory concurrently",
+    "InBuf behavior must remain bit-exact with the existing regression"
+  ]
+}
+

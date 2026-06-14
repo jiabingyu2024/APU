@@ -15,6 +15,11 @@ dma/
   reports/      工具生成的原始结果，不手工伪造
 ```
 
-当前阶段仅完成现状审查和工作计划。正式架构与阶段门槛见
+当前已完成协议软件测试、DMA RTL初版、完整BD生成Tcl、零拷贝PYNQ驱动和板上测试脚本。
+Vivado HDL编译、综合、实现、bitstream和板上数据仍待用户在GUI/PYNQ执行。正式架构与阶段门槛见
 [`docs/dma/00_CURRENT_STATE_AND_WORK_PLAN.md`](../docs/dma/00_CURRENT_STATE_AND_WORK_PLAN.md)。
-
+预计文件和 Vivado/PYNQ 完整实施顺序见
+[`docs/dma/01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md`](../docs/dma/01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md)。
+实际操作从
+[`docs/dma/06_VIVADO_GUI_BUILD_AND_EXPORT.md`](../docs/dma/06_VIVADO_GUI_BUILD_AND_EXPORT.md)
+继续。

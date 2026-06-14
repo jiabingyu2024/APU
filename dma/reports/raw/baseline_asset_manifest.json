@@ -1,0 +1,240 @@
+{
+  "assets": [
+    {
+      "bytes": 4045676,
+      "path": "apuYjb/myDesign.bit",
+      "sha256": "6dc85f3fe828147fa9abf2e45c822a1cee0f81a7f35ca4cd6f654ba7ae93a323"
+    },
+    {
+      "bytes": 154013,
+      "path": "apuYjb/myDesign.hwh",
+      "sha256": "888723049ca15d93316900179c4a8186383818744e9f763a3bac5c863ec50427"
+    },
+    {
+      "bytes": 34593,
+      "path": "apuYjb/myDesign.tcl",
+      "sha256": "88bda922207ba0fb92348bfa796faa174d61d3daddd2d640d02202182e4e5d10"
+    },
+    {
+      "bytes": 24101,
+      "path": "apuYjb/apu_driver.py",
+      "sha256": "1454b14df267eb7f2d3986782c2e9366e3c9503d6b735c8f458eb3401190bda6"
+    },
+    {
+      "bytes": 8881,
+      "path": "apuYjb/resnet_binary_ps.py",
+      "sha256": "f9aa38fd02f48b14f816e1ac5b0c2bc06173abb084671494c29baad4d1e6f5b1"
+    },
+    {
+      "bytes": 27965454,
+      "path": "apuYjb/model_best.pth.tar",
+      "sha256": "008a6afb2b7633f8df5e65fc45feefc6811ca79ff41a5090e393830f69314b8e"
+    }
+  ],
+  "generated_at_utc": "2026-06-14T05:46:00.886864+00:00",
+  "git_commit": "f94123d1d6226de25ffe947f608de6c3e88adcfb",
+  "git_status_porcelain": "M dma/README.md\n M docs/dma/00_CURRENT_STATE_AND_WORK_PLAN.md\n M docs/dma/README.md\n?? dma/benchmark/\n?? dma/reports/\n?? docs/dma/01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md\n?? docs/dma/02_STAGE_A_BASELINE.md",
+  "host": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.13.11"
+  },
+  "parameter_bundle": [
+    {
+      "bytes": 2176,
+      "path": "apuYjb/param/bn1_combined.txt",
+      "sha256": "b4dee498043cf8f051a9c0e6a8f609543510fee0b4bac0ff87433d059331d997"
+    },
+    {
+      "bytes": 8704,
+      "path": "apuYjb/param/bn_extra_combined.txt",
+      "sha256": "1e8036cdbe11388782a7a454646e9a37da9b3102efe691cd1cf42960d3090b0d"
+    },
+    {
+      "bytes": 1836,
+      "path": "apuYjb/param/conv1.txt",
+      "sha256": "c557bf57e48b57cffcb3598a7e3ef323c7925f03b98c040a47fede70d1e17fa9"
+    },
+    {
+      "bytes": 4456448,
+      "path": "apuYjb/param/convavgpool.txt",
+      "sha256": "2b20b30549255db08a2fe55bf5fe020205ce26f5c923f919612c191a8982b1f9"
+    },
+    {
+      "bytes": 69632,
+      "path": "apuYjb/param/input_binary.txt",
+      "sha256": "61474e29bdd69745218782b5b126d43d9c7b09b51d9565a0d8d9a0540bc972ef"
+    },
+    {
+      "bytes": 2176,
+      "path": "apuYjb/param/layer1.0.bn1_combined.txt",
+      "sha256": "5562fde8c68d9a1530e7394a26d0fa0af8591c604fe674e8818163757e8faa26"
+    },
+    {
+      "bytes": 2176,
+      "path": "apuYjb/param/layer1.0.bn2_combined.txt",
+      "sha256": "aa36d507e55ba139654d033ddbdac2f0a87e1e0ee2575a2826d7ae11ba6f6d6c"
+    },
+    {
+      "bytes": 2176,
+      "path": "apuYjb/param/layer1.0.bn3_combined.txt",
+      "sha256": "5e53d84f2dece758511dcecbcabbd399af8606dee9232a6f8fbcfc27d60f9333"
+    },
+    {
+      "bytes": 39168,
+      "path": "apuYjb/param/layer1.0.conv1.txt",
+      "sha256": "4b078c5e30d284eba9eb867c598237e8eeb72ae254575d0e43633260c53f9c96"
+    },
+    {
+      "bytes": 39168,
+      "path": "apuYjb/param/layer1.0.conv2.txt",
+      "sha256": "61938ec2ff4b825f9b49da01a98de733518034bc4b654fbed98c363bd3c60b74"
+    },
+    {
+      "bytes": 2176,
+      "path": "apuYjb/param/layer1.1.bn1_combined.txt",
+      "sha256": "f298cbddf2c65aef548454e6ff514a1fb392e2b79fcaabaa9e241abb1b78ca8d"
+    },
+    {
+      "bytes": 2176,
+      "path": "apuYjb/param/layer1.1.bn2_combined.txt",
+      "sha256": "aa36d507e55ba139654d033ddbdac2f0a87e1e0ee2575a2826d7ae11ba6f6d6c"
+    },
+    {
+      "bytes": 2176,
+      "path": "apuYjb/param/layer1.1.bn3_combined.txt",
+      "sha256": "9a63cb434d5dd3ddbd7175025df41d6dce9e558dff18ccd13c4e662773bf8d5a"
+    },
+    {
+      "bytes": 39168,
+      "path": "apuYjb/param/layer1.1.conv1.txt",
+      "sha256": "2a8e13d61a8eb3380e6cbc2d1e52a34d94da732b1f3fe80d18a5de70a26c2eb1"
+    },
+    {
+      "bytes": 39168,
+      "path": "apuYjb/param/layer1.1.conv2.txt",
+      "sha256": "3c0a00ce3a9843aa4b209fa340f6e2400d13128dc4e47454ede87ddc690c0749"
+    },
+    {
+      "bytes": 4352,
+      "path": "apuYjb/param/layer2.0.bn1_combined.txt",
+      "sha256": "174b49a7569143ec1514a1a2f51d8fb0e117b73309dbce5e7a204716304f7bfe"
+    },
+    {
+      "bytes": 4352,
+      "path": "apuYjb/param/layer2.0.bn2_combined.txt",
+      "sha256": "758e94c54afbbb74ee093220434388f0f20c40107b2477ef383e6b25caf333b6"
+    },
+    {
+      "bytes": 4352,
+      "path": "apuYjb/param/layer2.0.bn3_combined.txt",
+      "sha256": "c7c7e82ff54034fa92091b3cef49fd4707cc72d9be7da7f1f245781799c38f25"
+    },
+    {
+      "bytes": 78336,
+      "path": "apuYjb/param/layer2.0.conv1.txt",
+      "sha256": "b42a30cc865876ca40bf23d3b834a9bc491d3239569fe1989b8ed53f374b3284"
+    },
+    {
+      "bytes": 156672,
+      "path": "apuYjb/param/layer2.0.conv2.txt",
+      "sha256": "259b6a4ea2a46b36fdbe160b029cfe20791d69ab0b420b4cc8462a0ec55318fc"
+    },
+    {
+      "bytes": 165376,
+      "path": "apuYjb/param/layer2.0.conv2_combined.txt",
+      "sha256": "fd520143569d7d10ff15cea1de16a1f1899ffbc05526c704730d4bb573dd9339"
+    },
+    {
+      "bytes": 8704,
+      "path": "apuYjb/param/layer2.0.downsample.0.txt",
+      "sha256": "772af4c179b9ea9532a9301b039f6d6eb235f8c593a12fba0032dfe90bc75b57"
+    },
+    {
+      "bytes": 4352,
+      "path": "apuYjb/param/layer2.1.bn1_combined.txt",
+      "sha256": "90dcef440b4a80975c31628d8a9f4aa767e434a8d876169e86d357136c7ef846"
+    },
+    {
+      "bytes": 4352,
+      "path": "apuYjb/param/layer2.1.bn2_combined.txt",
+      "sha256": "758e94c54afbbb74ee093220434388f0f20c40107b2477ef383e6b25caf333b6"
+    },
+    {
+      "bytes": 4352,
+      "path": "apuYjb/param/layer2.1.bn3_combined.txt",
+      "sha256": "4bc90315f465c3d297be0c2720d4abb9eaa3c8ad788c7f730713a53ee1d9c7d0"
+    },
+    {
+      "bytes": 156672,
+      "path": "apuYjb/param/layer2.1.conv1.txt",
+      "sha256": "7a99c399657803ff21559e2a87994ec3fa57c93f4c4d091dddb22961247f47cc"
+    },
+    {
+      "bytes": 156672,
+      "path": "apuYjb/param/layer2.1.conv2.txt",
+      "sha256": "e6f4cf5ca12eac507a59a038c8b0f9a7a5d446942b11934569b0fd0494f39a89"
+    },
+    {
+      "bytes": 8704,
+      "path": "apuYjb/param/layer3.0.bn1_combined.txt",
+      "sha256": "99afc6f9fc8b9871945f4f153291773af825d501ce9c14bcdf4fc9ff8b5c777a"
+    },
+    {
+      "bytes": 8704,
+      "path": "apuYjb/param/layer3.0.bn2_combined.txt",
+      "sha256": "4de18a6ef6ce1c0b3fac308cb004587f2eb50d33513c38fbc09cbec05c5b6a1d"
+    },
+    {
+      "bytes": 8704,
+      "path": "apuYjb/param/layer3.0.bn3_combined.txt",
+      "sha256": "8a6ecf5a1724ce9a1be04343aeb575d9e367f21841ffd55494438ee18881502f"
+    },
+    {
+      "bytes": 313344,
+      "path": "apuYjb/param/layer3.0.conv1.txt",
+      "sha256": "a81b557da74e95bf8068548e256bf53b744eeaf363a4a8fa259c4dcc90f6a867"
+    },
+    {
+      "bytes": 626688,
+      "path": "apuYjb/param/layer3.0.conv2.txt",
+      "sha256": "8705940be1d857692de0d604be49530a6aa17052c058448ee3c7d8d9a008b6d8"
+    },
+    {
+      "bytes": 661504,
+      "path": "apuYjb/param/layer3.0.conv2_combined.txt",
+      "sha256": "3a629cc277e69ab5bd3eff25e94c2fe0b4e73d2b138ec9af93db58d9da70c664"
+    },
+    {
+      "bytes": 34816,
+      "path": "apuYjb/param/layer3.0.downsample.0.txt",
+      "sha256": "4cd75579588ecfa32759134daa2e75f49fa14c8461b5bf2c1fbcc2a0dd39804c"
+    },
+    {
+      "bytes": 8704,
+      "path": "apuYjb/param/layer3.1.bn1_combined.txt",
+      "sha256": "2e55dedbeba0d934a4485bfc3b5dbad5a8d22bab82394ea83429399b6515d700"
+    },
+    {
+      "bytes": 8704,
+      "path": "apuYjb/param/layer3.1.bn2_combined.txt",
+      "sha256": "4de18a6ef6ce1c0b3fac308cb004587f2eb50d33513c38fbc09cbec05c5b6a1d"
+    },
+    {
+      "bytes": 8704,
+      "path": "apuYjb/param/layer3.1.bn3_combined.txt",
+      "sha256": "dfb50c2a0c66c8dd19954a2b84b11a1b82709b75ff3c459c7a83e19570cf1d85"
+    },
+    {
+      "bytes": 626688,
+      "path": "apuYjb/param/layer3.1.conv1.txt",
+      "sha256": "b0d6a05e451c6dced2198ea46832c1a07d0c5f30b7986ec700daa761ded5c68a"
+    },
+    {
+      "bytes": 626688,
+      "path": "apuYjb/param/layer3.1.conv2.txt",
+      "sha256": "09e7d2735edf40cac301c45abc80dc30d5706034db990d03385b53bf62bc39d2"
+    }
+  ],
+  "repo_root_basename": "APU",
+  "schema_version": 1
+}

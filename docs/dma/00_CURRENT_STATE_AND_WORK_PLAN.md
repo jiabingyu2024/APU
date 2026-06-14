@@ -16,6 +16,16 @@
 通过物理地址访问该缓冲区，数据提交前不再执行 `list -> bytes -> MMIO` 中间复制。
 PyTorch 前处理本身是否产生张量转换，必须在报告中单独说明，不能混入 DMA 零拷贝结论。
 
+## 当前执行状态（2026-06-14）
+
+- 阶段A基线脚本已准备，旧板上测量待执行；
+- 阶段B DMA loopback BD已验证，bitstream和板上测试待执行；
+- 阶段C packet协议及Python构包/解包测试已完成；
+- 阶段D/E共9个DMA RTL模块已生成并静态审查，尚未进行HDL编译；
+- 完整APU DMA BD Tcl、GUI操作文档和Overlay导出脚本已准备；
+- PYNQ零拷贝驱动、ACT RAM smoke test和真实loader带宽脚本已准备；
+- 完整网络参数迁移、bit-exact对比和最终性能报告仍待后续阶段。
+
 ## 2. 当前方案审查结论
 
 ### 2.1 当前硬件路径
@@ -62,6 +72,23 @@ APU 使用 PS `FCLK_CLK0=100 MHz`。当前 BD 没有 AXI DMA，也没有启用 P
 - PL 侧必须增加 AXI-Stream 接收、发送、背压和任务控制；
 - 软件必须改用 CMA 连续缓冲区、DMA 中断和批量任务；
 - 必须增加硬件周期/字节计数器，不能只用 Python 墙钟时间推断带宽。
+
+### 2.4 `APU_0` 的复用边界
+
+旧上板 `APU_0` 与当前仿真 `rtl/Top_student.sv` 不是完全相同的总线封装：旧 IP 删除了
+外部 `hsel/hready`，并使用 `BRIDGE_BASE_ADDR` 在内部根据绝对 `haddr` 生成 `hsel`；当前
+仿真顶层则显式提供 `hsel`、`hready` 和 `hreadyout`。
+
+因此本路线所说的“保留 APU”是指保留计算算法、存储布局和叶子计算模块，不是把旧
+AHB `APU_0` 原样接到 AXI DMA。最终 DMA Overlay 使用新 IP `APU_DMA_0`：
+
+- 复用 `WorkSheet/Ctrl/InBuf/FeatureProcessor/ComputeCoreGroup/SIMD` 等计算模块；
+- 新增 AXI-Stream loader、结果发送器和任务控制；
+- 不经过旧 `ahb_slave/addr_map` 数据路径；
+- 旧 `APU_0`、`myDesign.bit/.hwh/.tcl` 保持不变，作为功能和性能基线。
+
+完整文件边界与操作流程见
+[`01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md`](01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md)。
 
 ## 3. 推荐总体架构
 
@@ -113,9 +140,9 @@ AXI DMA mm2s_introut/s2mm_introut -> xlconcat -> PS IRQ_F2P
 | `axis_job_decoder` | 解析任务头和 payload 类型 | 必须支持 `TREADY` 背压和长度检查 |
 | `apu_stream_loader` | 64-bit 流写入 feature/weight/BN/worksheet | 负责 bank、地址和 32/64-bit 拼接 |
 | `apu_job_ctrl` | 分段装载、启动、等待完成、错误恢复 | 一次任务只产生一次完成事件 |
-| `apu_core` | 从当前 `Top` 抽出的计算与 SRAM 主体 | 不感知 AXI 协议 |
-| `axis_result_packetizer` | 读取结果 SRAM并产生 `TVALID/TLAST` | `TVALID` 在停顿期间必须保持 |
-| `axi_lite_ctrl` | 版本、状态、中断、计数器 | 不承载大块数据 |
+| `apu_dma_core` | 从当前 `Top` 抽出的计算与 SRAM 主体 | 不感知 AXI 协议 |
+| `axis_result_streamer` | 读取结果 SRAM并产生 `TVALID/TLAST` | `TVALID` 在停顿期间必须保持 |
+| `apu_dma_axil_regs` | 版本、状态、中断、计数器 | 不承载大块数据 |
 | `axis_fifo/skid` | 解耦 DMA 与 loader/packetizer | 防止组合 ready 链和数据丢失 |
 
 为保证公平对比，推荐把现有 `Top` 拆成“协议无关的 `apu_core` + 旧 AHB wrapper + 新 DMA
@@ -308,16 +335,14 @@ Top-1 约 20%，则继续沿模型参数/量化合同排查，不能把准确率
 
 ## 8. 推荐执行顺序
 
-当前项目处于“架构与协议冻结前”，下一步不是直接改 `apu_driver.py`，也不是先在 GUI 中拖
-AXI DMA。应依次完成：
+当前项目已经越过架构和协议冻结阶段，后续按以下顺序完成：
 
 ```text
-旧方案基线测量
-  -> DMA 架构/packet/寄存器冻结
-  -> AXIS loader/result RTL 与随机背压验证
-  -> 接入 APU core 并做 bit-exact 回归
-  -> Tcl 重建 Block Design
-  -> PYNQ 零拷贝中断驱动
+Vivado GUI编译/综合/实现/bitstream
+  -> PYNQ ACT RAM smoke test
+  -> loopback与真实loader带宽/CPU测试
+  -> 完整网络参数迁移与bit-exact回归
+  -> 连续1000次稳定性测试
   -> 板上功能验收
   -> 带宽/CPU/稳定性测试
   -> AXI-Lite vs DMA 最终报告
@@ -325,4 +350,3 @@ AXI DMA。应依次完成：
 
 首个可交付里程碑应是“DMA loopback >=200 MB/s 且 CPU<10%”，第二个里程碑是“APU
 DMA 输出与旧 MMIO 输出 bit-exact”，第三个里程碑才是 batch/ping-pong 的端到端性能优化。
-

@@ -1,0 +1,16 @@
+{
+  "design_name": "apu_dma",
+  "rtl": {
+    "dir": "dma/rtl",
+    "top_module": "apu_dma_top"
+  },
+  "clock": {
+    "name": "aclk",
+    "frequency_hz": 100000000
+  },
+  "reset": {
+    "name": "aresetn",
+    "active_low": true
+  }
+}
+
