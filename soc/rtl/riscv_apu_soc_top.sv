@@ -9,6 +9,7 @@ module riscv_apu_soc_top #(
     input  logic        console_tx_ready,
     output logic        console_tx_valid,
     output logic [ 7:0] console_tx_data,
+    output logic [ 7:0] debug_code,
     output logic        sim_done,
     output logic [31:0] sim_exit_code,
     output logic        bus_fault,
@@ -128,6 +129,7 @@ module riscv_apu_soc_top #(
       .tx_ready  (console_tx_ready),
       .tx_valid  (console_tx_valid),
       .tx_data   (console_tx_data),
+      .debug_code(debug_code),
       .sim_done  (sim_done),
       .exit_code (sim_exit_code)
   );

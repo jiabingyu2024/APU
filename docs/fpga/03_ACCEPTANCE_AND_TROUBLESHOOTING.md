@@ -30,14 +30,16 @@
 
 ### 2.2 运行证据
 
-- 外部 USB-TTL 得到完整九项 PASS；
 - LED0 最终亮；
 - LED1 始终灭；
 - LED2 运行后亮；
+- LED3 持续闪烁，LD4 最终显示绿色；
+- SW0/SW1 读取阶段码 `7F`；
+- BTN1 灯检可点亮 LED0..3；
 - BTN0 可使系统重新执行；
 - XSCT 禁用两个 A9 后，按 BTN0 重新运行仍完整通过；
 - 保存 `A9_CPU_RST_CTRL=0x00000033` 的脚本和控制台记录；
-- 保存终端日志、LED 照片、timing/utilization 截图。
+- 保存阶段码、LED/RGB 照片、timing/utilization 截图。
 
 ## 3. Vivado 找不到 hex
 
@@ -92,8 +94,9 @@ wc -l soc/build/firmware.hex soc/build/model.hex
 6. 用 ILA 或示波器观察 `clk_125mhz_i`；
 7. 实现报告是否把时钟或端口优化掉。
 
-LED3 表示 MMCM 锁定并释放 PL 复位。若 LED3 亮而其他无变化，继续查 PicoRV32 复位、
-boot RAM 和 trap。
+先按住 BTN1；若四灯仍不亮，是 bit/顶层/XDC 问题。松开 BTN1 后 LED3 应闪烁，表示
+MMCM 输出时钟持续运行。若 LED3 闪而 LD5 绿色不出现，继续查 PicoRV32、boot RAM 和
+trap。
 
 ## 7. LED1 亮，PicoRV32 trap
 
@@ -109,6 +112,9 @@ boot RAM 和 trap。
 
 ## 8. UART 无输出，但 LED 有变化
 
+本次验收不要求 UART。板载 J8 UART 属于 PS MIO，不能直接接收 PL `uart_tx_o`；没有
+外置 USB-TTL 时直接按阶段码继续判断。若以后自备 USB-TTL，再检查：
+
 - USB-TTL 必须是 3.3 V；
 - W14/PMODB pin 1 接 USB-TTL RX，不是 TX；
 - 两边必须共地；
@@ -121,8 +127,9 @@ boot RAM 和 trap。
 
 ## 9. APU PASS，但 LED0 不亮
 
-完整网络之后还会运行 zero-conv 和 MMIO bridge。查看是否出现 `FAIL code`。`done_o` 只有
-固件向 EXIT 写入 0 后才为高，不能因为 LED2 亮就认为全部通过。
+完整网络之后还会运行 zero-conv 和 MMIO bridge。令 SW0=1，用 SW1 分别读取阶段码；
+`B6` 表示完整网络 mismatch，`A1` 表示 zero-conv mismatch，`90..97` 表示 MMIO smoke
+失败。`done_o` 只有固件向 EXIT 写入 0 后才为高，不能因为 LED2 亮就认为全部通过。
 
 ## 10. 建议保存的报告材料
 
@@ -132,9 +139,9 @@ fpga/output/reports/post_route_utilization.rpt
 fpga/output/reports/post_route_timing_summary.rpt
 fpga/output/reports/post_route_drc.rpt
 soc/build/firmware.dis
-完整 UART 日志
+SW0/SW1 阶段码与 LED/RGB 状态照片
 Vivado hierarchy / schematic 截图
-PYNQ-Z2 接线和 LED 最终状态照片
+PYNQ-Z2 LED/RGB 最终状态照片
 ```
 
 最终报告应同时覆盖工具链、机器码生成、BRAM 初始化、RISC-V 启动、总线访问、APU 推理、

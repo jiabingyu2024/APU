@@ -3,6 +3,7 @@
 
 #define CONSOLE_BASE       0x10000000u
 #define CONSOLE_TXDATA     (CONSOLE_BASE + 0x00u)
+#define CONSOLE_DEBUG      (CONSOLE_BASE + 0x04u)
 #define CONSOLE_STATUS     (CONSOLE_BASE + 0x08u)
 #define CONSOLE_EXIT       (CONSOLE_BASE + 0x0cu)
 #define TIMER_BASE         0x10001000u
@@ -72,6 +73,11 @@ static inline uint32_t model_read32(uint32_t word_offset)
     return mmio_read32(MODEL_BASE + word_offset * 4u);
 }
 
+static inline void debug_set(uint32_t code)
+{
+    mmio_write32(CONSOLE_DEBUG, code);
+}
+
 static void putc(char value)
 {
     while ((mmio_read32(CONSOLE_STATUS) & 1u) == 0u) {
@@ -97,6 +103,7 @@ static void put_hex(uint32_t value)
 
 static void fail(uint32_t code)
 {
+    debug_set(0x80u | (code & 0x7fu));
     puts("FAIL code=0x");
     put_hex(code);
     putc('\n');
@@ -199,12 +206,14 @@ static void apu_run_full_network(void)
         apu_load_operation(&network_operations[index]);
     }
     apu_start_and_wait(0x30u);
+    debug_set(0x51u);
 
     // Layer3 does not fit beside the earlier weights. Reuse weight/BN/worksheet
     // address zero and execute each operation as an independent batch.
     for (uint32_t index = 8u; index < 12u; index++) {
         apu_load_operation(&network_operations[index]);
         apu_start_and_wait(0x31u + index - 8u);
+        debug_set(0x52u + index - 8u);
     }
 
     // Twelve ping-pong toggles return the final 8x8x256 tensor to ActSRAM.
@@ -230,6 +239,7 @@ static void apu_run_full_network(void)
         }
     }
 
+    debug_set(0x5fu);
     puts("APU FULL NETWORK PASS\n");
 }
 
@@ -269,6 +279,7 @@ static void apu_mmio_smoke(void)
     mmio_write32(APU_WINDOW, worksheet_value);
     if (mmio_read32(APU_WINDOW) != worksheet_value) fail(0x17u);
 
+    debug_set(0x7eu);
     puts("APU MMIO BRIDGE PASS\n");
 }
 
@@ -323,6 +334,7 @@ static void apu_run_zero_conv(void)
         }
     }
 
+    debug_set(0x6fu);
     puts("APU ZERO CONV PASS\n");
 }
 
@@ -338,6 +350,7 @@ int main(void)
     uint32_t product;
     uint32_t quotient;
 
+    debug_set(0x01u);
     puts("HELLO RISCV APU SOC\n");
 
     ram8[0] = 0x5au;
@@ -348,6 +361,7 @@ int main(void)
         ram32[0] != 0x89abcdefu) {
         fail(0x01u);
     }
+    debug_set(0x10u);
     puts("RAM BYTE/HALF/WORD PASS\n");
 
     product = factor_a * factor_b;
@@ -355,6 +369,7 @@ int main(void)
     if (product != 2091u || quotient != factor_a) {
         fail(0x02u);
     }
+    debug_set(0x20u);
     puts("RV32IM PASS\n");
 
     timer_start = mmio_read32(TIMER_COUNT_LO);
@@ -364,6 +379,7 @@ int main(void)
     if (timer_end <= timer_start) {
         fail(0x03u);
     }
+    debug_set(0x30u);
     puts("TIMER PASS cycles=0x");
     put_hex(timer_end - timer_start);
     putc('\n');
@@ -373,10 +389,15 @@ int main(void)
     if (mmio_read32(UNMAPPED_TEST_ADDR) != 0xdeadbeefu) {
         fail(0x04u);
     }
+    debug_set(0x40u);
     puts("DEFAULT SLAVE PASS\n");
+    debug_set(0x50u);
     apu_run_full_network();
+    debug_set(0x60u);
     apu_run_zero_conv();
+    debug_set(0x70u);
     apu_mmio_smoke();
+    debug_set(0x7fu);
     puts("SOC PREBOARD PASS\n");
 
     mmio_write32(CONSOLE_EXIT, 0u);

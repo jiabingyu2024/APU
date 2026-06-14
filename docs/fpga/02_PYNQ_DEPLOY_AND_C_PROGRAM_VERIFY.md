@@ -1,5 +1,8 @@
 # PYNQ 下载与 C 程序执行验证
 
+> 当前默认验收不使用 USB-TTL。BTN/SW/LED/RGB 的完整步骤见
+> [06_NO_USB_TTL_BOARD_DEBUG.md](06_NO_USB_TTL_BOARD_DEBUG.md)。本文 UART 部分仅保留为可选调试参考。
+
 ## 1. 谁在执行 C 程序
 
 | 处理器 | 开发期快速下载时的职责 | 是否执行 `soc/firmware/main.c` |
@@ -17,9 +20,10 @@
 
 - J8 `PROG UART` 接电脑：供电和 JTAG；
 - BTN0：PicoRV32 SoC 复位，按下复位，松开重新执行；
-- LED0..LED3：查看 PASS/TRAP/APU/reset 状态。
+- BTN1：无时钟依赖的普通 LED 灯检；
+- SW0/SW1、LED0..LED3 和 RGB LED：查看 PASS/FAIL/APU/心跳及阶段码。
 
-### 2.2 PL UART 使用外部 USB-TTL
+### 2.2 可选：PL UART 使用外部 USB-TTL
 
 准备 **3.3 V TTL** 串口模块，禁止使用 5 V 电平。
 
@@ -116,9 +120,10 @@ SOC PREBOARD PASS
 | LED0 | 最终亮 | 固件向 EXIT 寄存器写 0，全部测试通过 |
 | LED1 | 始终灭 | PicoRV32 没有进入 trap |
 | LED2 | 运行中变亮并保持 | APU 至少完成过一次计算 |
-| LED3 | 未按 BTN0 时亮 | 25 MHz MMCM 已锁定且 SoC 已释放复位 |
+| LED3 | 持续闪烁 | 25 MHz SoC 时钟正在运行 |
 
-判断优先级：UART 完整 PASS 日志 > LED0/LED1 > LED2。LED2 不能证明结果正确。
+无 USB-TTL 时判断优先级：阶段码 `7F` + LD4 绿色 + LED0 > LED1/失败码 > LED2。
+LED2 不能证明结果正确。
 
 ## 5. 如何证明 C 程序由 RISC-V 执行
 
@@ -126,8 +131,8 @@ SOC PREBOARD PASS
 
 1. `firmware.dis` 中 `_start`、`main`、`apu_run_full_network` 的 RISC-V 反汇编；
 2. Vivado hierarchy 中 `picorv32 -> soc_interconnect -> native_to_apu_ahb -> Top`；
-3. UART 首行和各测试 PASS；
-4. LED1 未亮、LED0 最终亮；
+3. 阶段码从 `01` 运行到 `7F`；
+4. LED1 未亮、LED0 最终亮、LD4 绿色；
 5. 固件中故意改变一处测试常量后重新编译，串口行为随 RISC-V 固件变化，验证后恢复；
 6. 完整网络 golden bit-exact 检查由 `main.c` 完成，而不是由 Python 比较。
 
@@ -185,10 +190,9 @@ xsct fpga/xsct/disable_arm_cores.tcl
 ```
 
 5. 脚本写入 `A9_CPU_RST_CTRL=0x33` 后，Linux 会立即停止响应，这是预期行为。
-6. 开发电脑启动外部 USB-TTL 捕获。
-7. 按住再松开 BTN0。BTN0 只接 PL 顶层，不会解除 ARM reset/clock-stop。
-8. PicoRV32 在 ARM 已禁用的状态下重新执行完整 C 固件。
-9. 验收 UART 九项 PASS、LED0 亮、LED1 灭、LED2 亮。
+6. 按住再松开 BTN0。BTN0 只接 PL 顶层，不会解除 ARM reset/clock-stop。
+7. PicoRV32 在 ARM 已禁用的状态下重新执行完整 C 固件。
+8. 验收阶段码 `7F`、LED0/2 亮、LED1 灭、LED3 心跳、LD4 绿色。
 
 停止 Linux CPU 属于强制操作，先执行 `sync` 并备份重要 SD 卡数据。恢复 ARM 的最简单
 方法是给板卡重新上电。

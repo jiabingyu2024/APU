@@ -11,7 +11,10 @@ module riscv_apu_board_top #(
     output logic uart_tx_o,
     output logic trap_o,
     output logic done_o,
-    output logic apu_done_o
+    output logic fail_o,
+    output logic apu_done_o,
+    output logic [7:0] debug_code_o,
+    output logic soc_resetn_o
 );
 
   // 异步按键复位进入时钟域后同步释放，便于 Vivado 正确放置同步寄存器。
@@ -36,6 +39,7 @@ module riscv_apu_board_top #(
     end
   end
   assign resetn = reset_sync_q[1];
+  assign soc_resetn_o = resetn;
 
   riscv_apu_soc_top #(
       .FIRMWARE_INIT_FILE(FIRMWARE_INIT_FILE),
@@ -47,6 +51,7 @@ module riscv_apu_board_top #(
       .console_tx_ready(console_tx_ready),
       .console_tx_valid(console_tx_valid),
       .console_tx_data (console_tx_data),
+      .debug_code      (debug_code_o),
       .sim_done        (sim_done),
       .sim_exit_code   (sim_exit_code),
       .bus_fault       (bus_fault),
@@ -72,6 +77,8 @@ module riscv_apu_board_top #(
   // The firmware writes EXIT only after all checks pass. On hardware this
   // output can drive an LED; sim_exit_code remains available for debug probes.
   assign done_o = sim_done && (sim_exit_code == 32'b0);
+  assign fail_o = trap_o || debug_code_o[7] ||
+                  (sim_done && (sim_exit_code != 32'b0));
 
   logic unused_status;
   assign unused_status = bus_fault | timer_irq | apu_access_fault |

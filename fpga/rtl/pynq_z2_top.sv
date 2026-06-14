@@ -2,8 +2,16 @@
 module pynq_z2_top (
     input  logic       clk_125mhz_i,
     input  logic       btn0_i,
+    input  logic       btn1_i,
+    input  logic [1:0] sw_i,
     output logic       uart_tx_o,
-    output logic [3:0] led_o
+    output logic [3:0] led_o,
+    output logic       rgb0_r_n_o,
+    output logic       rgb0_g_n_o,
+    output logic       rgb0_b_n_o,
+    output logic       rgb1_r_n_o,
+    output logic       rgb1_g_n_o,
+    output logic       rgb1_b_n_o
 );
 
   logic resetn_board;
@@ -11,8 +19,11 @@ module pynq_z2_top (
   logic clock_locked;
   logic trap;
   logic done;
+  logic fail;
+  logic soc_resetn;
   logic apu_done_pulse;
   logic apu_seen_q;
+  logic [7:0] debug_code;
 
   clock_gen_25mhz u_clock_gen (
       .clk_125mhz_i(clk_125mhz_i),
@@ -35,23 +46,39 @@ module pynq_z2_top (
       .uart_tx_o (uart_tx_o),
       .trap_o    (trap),
       .done_o    (done),
-      .apu_done_o(apu_done_pulse)
+      .fail_o    (fail),
+      .apu_done_o(apu_done_pulse),
+      .debug_code_o(debug_code),
+      .soc_resetn_o(soc_resetn)
   );
 
   // APU 完成信号只有一个脉冲，锁存后再接 LED，按 BTN0 清除。
-  always_ff @(posedge clk_25mhz or negedge resetn_board) begin
-    if (!resetn_board) begin
+  always_ff @(posedge clk_25mhz or negedge soc_resetn) begin
+    if (!soc_resetn) begin
       apu_seen_q <= 1'b0;
     end else if (apu_done_pulse) begin
       apu_seen_q <= 1'b1;
     end
   end
 
-  // LED0: 全部固件检查通过；LED1: CPU trap；LED2: APU 至少完成过一次；
-  // LED3: 25 MHz 时钟已锁定且当前未按复位键。普通 LED 均为高电平点亮。
-  assign led_o[0] = done;
-  assign led_o[1] = trap;
-  assign led_o[2] = apu_seen_q;
-  assign led_o[3] = resetn_board;
+  pynq_z2_debug_display u_debug_display (
+      .clk_i         (clk_25mhz),
+      .resetn_i      (soc_resetn),
+      .clock_locked_i(clock_locked),
+      .lamp_test_i   (btn1_i),
+      .sw_i          (sw_i),
+      .done_i        (done),
+      .fail_i        (fail),
+      .trap_i        (trap),
+      .apu_seen_i    (apu_seen_q),
+      .debug_code_i  (debug_code),
+      .led_o         (led_o),
+      .rgb0_r_n_o    (rgb0_r_n_o),
+      .rgb0_g_n_o    (rgb0_g_n_o),
+      .rgb0_b_n_o    (rgb0_b_n_o),
+      .rgb1_r_n_o    (rgb1_r_n_o),
+      .rgb1_g_n_o    (rgb1_g_n_o),
+      .rgb1_b_n_o    (rgb1_b_n_o)
+  );
 
 endmodule

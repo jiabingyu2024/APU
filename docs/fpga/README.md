@@ -15,8 +15,12 @@ Zynq Processing System IP。
 4. [04_RESOURCE_ESTIMATE.md](04_RESOURCE_ESTIMATE.md)
    - XC7Z020 资源上限、当前设计的 BRAM/LUT/FF 粗估和综合风险。
 5. [05_BIT_TO_ARM_DISABLED_ACCEPTANCE.md](05_BIT_TO_ARM_DISABLED_ACCEPTANCE.md)
-   - 面向第一次上板：从 bit 下载、USB-TTL 两线接法到 XSCT 禁用双 ARM 的完整步骤。
-6. [PIN.md](PIN.md)
+   - bit 下载后通过 USB-JTAG/XSCT 禁用双 ARM，并保持 H16 时钟所需基础设施。
+6. [06_NO_USB_TTL_BOARD_DEBUG.md](06_NO_USB_TTL_BOARD_DEBUG.md)
+   - 不使用 USB-TTL，仅靠 BTN、SW、普通 LED 和 RGB LED 定位启动/计算/失败阶段。
+7. [07_RTL_REVIEW_AND_VIVADO_HANDOFF.md](07_RTL_REVIEW_AND_VIVADO_HANDOFF.md)
+   - 本轮 RTL/工程审查结论、已修正问题、保留风险和 GUI 交付边界。
+8. [PIN.md](PIN.md)
    - PYNQ-Z2 管脚、时钟、按钮、LED、Pmod 和 PS MIO 参考。
 
 配套工程文件位于：
@@ -25,6 +29,7 @@ Zynq Processing System IP。
 fpga/
 ├── Makefile
 ├── constraints/pynq_z2.xdc
+├── rtl/pynq_z2_debug_display.sv
 ├── rtl/pynq_z2_top.sv
 ├── scripts/create_project.tcl
 ├── scripts/build_bitstream.tcl

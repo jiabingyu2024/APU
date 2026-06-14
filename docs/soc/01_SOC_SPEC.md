@@ -49,7 +49,7 @@
 | 起始地址 | 结束地址 | 大小 | 当前模块 | 访问属性 | 状态 |
 | --- | --- | ---: | --- | --- | --- |
 | `0x0000_0000` | `0x0000_FFFF` | 64 KiB | `boot_ram` | RWX | 已实现 |
-| `0x1000_0000` | `0x1000_0FFF` | 4 KiB | `sim_console` | RW | 已实现，仅仿真 |
+| `0x1000_0000` | `0x1000_0FFF` | 4 KiB | console/debug | RW | 已实现，仿真与板级共用 |
 | `0x1000_1000` | `0x1000_1FFF` | 4 KiB | `soc_timer` | RW | 已实现 |
 | `0x1000_2000` | `0x1000_2FFF` | 4 KiB | GPIO | RW | 预留 |
 | `0x2000_0000` | `0x2000_3FFF` | 16 KiB | APU bridge | RW | 已实现 |
@@ -65,12 +65,13 @@
 
 | 偏移 | 英文名 | 访问 | 复位值 | 中文含义 |
 | ---: | --- | --- | ---: | --- |
-| `0x00` | `TXDATA` | WO | 0 | 写入低 8 bit 后，测试平台输出一个字符 |
-| `0x08` | `STATUS` | RO | 1 | bit0 为 1，表示仿真 console 始终可接收字符 |
+| `0x00` | `TXDATA` | WO | 0 | 写入低 8 bit 后发送一个 console/UART 字符 |
+| `0x04` | `DEBUG` | RW | 0 | 低 8 bit 为固件阶段码/编码后的失败码 |
+| `0x08` | `STATUS` | RO | 0 | bit0 表示下游 UART/测试平台可接收字符 |
 | `0x0C` | `EXIT` | WO | 0 | 固件写退出码；0 表示通过，非 0 表示失败编号 |
 
-`sim_console` 不是板级 UART。它只把 MMIO 写转换成测试平台可观察的 `tx_valid/tx_data`，
-因此不会引入波特率和串行移位逻辑。上板阶段必须替换或并联真正 UART TX/RX。
+`sim_console` 把 TXDATA 转换成 `tx_valid/tx_data`，板级包装层再连接 `uart_tx`；DEBUG 则
+直接传播到 LED/RGB 调试逻辑。因此无 USB-TTL 时，固件仍可通过阶段码完成板级验收。
 
 ## 6. Timer 寄存器
 

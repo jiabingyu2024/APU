@@ -14,7 +14,7 @@
 
 ```text
 pynq_z2_top
-└── riscv_apu_board_top
+├── riscv_apu_board_top
     ├── riscv_apu_soc_top
     │   ├── picorv32_wrapper -> picorv32
     │   ├── boot_ram         <- firmware.hex
@@ -22,7 +22,8 @@ pynq_z2_top
     │   ├── soc_interconnect / timer / console / default_slave
     │   ├── native_to_apu_ahb
     │   └── Top              -> APU
-    └── uart_tx
+│   └── uart_tx
+└── pynq_z2_debug_display
 ```
 
 ## 2. 上板前生成软件镜像
@@ -69,7 +70,7 @@ UART bootloader、JTAG debug module 或运行时程序加载器。
 third_party/picorv32/picorv32.v
 soc/rtl/*.sv
 rtl/*.sv
-fpga/rtl/pynq_z2_top.sv
+fpga/rtl/*.sv
 ```
 
 不要加入 `soc/tb/*.sv`、`tb/*.sv` 和 `build/verilator/*`。顶层设置为：
@@ -99,14 +100,20 @@ soc/build/model.hex
 |---|---|---|---|
 | `clk_125mhz_i` | PL 125 MHz 输入 | H16 | 经 MMCM 生成 25 MHz SoC 时钟 |
 | `btn0_i` | BTN0 | D19 | 按下为高，包装层反相成低有效复位 |
-| `uart_tx_o` | PMODB pin 1 | W14 | 接外部 3.3 V USB-TTL RX |
+| `btn1_i` | BTN1 | D20 | 无时钟依赖的四 LED 灯检 |
+| `sw_i[0]` | SW0 | M20 | 状态/阶段码显示选择 |
+| `sw_i[1]` | SW1 | M19 | 阶段码高/低半字节选择 |
+| `uart_tx_o` | PMODB pin 1 | W14 | 可选调试，本次验收不使用 |
 | `led_o[0]` | LED0 | R14 | 全部固件检查通过 |
-| `led_o[1]` | LED1 | P14 | PicoRV32 trap |
+| `led_o[1]` | LED1 | P14 | 固件 FAIL 或 PicoRV32 trap |
 | `led_o[2]` | LED2 | N16 | APU 至少完成过一次 |
-| `led_o[3]` | LED3 | M14 | MMCM 已锁定且当前已释放复位 |
+| `led_o[3]` | LED3 | M14 | 25 MHz 心跳 |
+| `rgb0_*_n_o` | LD4 RGB | N15/G17/L15 | FAIL/PASS/运行状态，低有效 |
+| `rgb1_*_n_o` | LD5 RGB | M15/L14/G14 | trap/CPU alive/APU seen，低有效 |
 
-板载 J8 USB-UART 接在 **PS MIO14/MIO15**，不是普通 PL 管脚，纯 PL 工程不能直接把
-`uart_tx_o` 接到该串口。因此本方案使用 PMODB pin 1 和独立 USB-TTL 模块。
+板载 J8 USB-UART 接在 **PS MIO14/MIO15**，纯 PL 工程不能直接把 `uart_tx_o` 接到该
+串口。本次不采用外置 USB-TTL，验收使用 BTN/SW/LED/RGB；J8 USB 仍用于 JTAG 下载和
+XSCT。
 
 ## 4. PYNQ-Z2 专用适配
 
@@ -115,7 +122,7 @@ soc/build/model.hex
 BTN0 按下时输出高，而 SoC 的 `resetn_i` 低有效：
 
 ```systemverilog
-assign resetn_board = ~btn0_i;
+assign resetn_board = ~btn0_i && clock_locked;
 ```
 
 `riscv_apu_board_top` 内部再执行“异步拉低、同步释放”的两级同步，并使用
@@ -138,8 +145,9 @@ UART 的 `CLK_HZ` 同步设置为 `25_000_000`，波特率仍为 115200。
 ### 4.3 APU 完成脉冲锁存
 
 `apu_done_o` 只持续很短时间，直接接 LED 肉眼不可见。`pynq_z2_top` 将其锁存到
-`apu_seen_q`，直到按 BTN0 清除。LED2 只能证明 APU 曾完成，最终正确性仍以 LED0 和
-UART 的 `SOC PREBOARD PASS` 为准。
+`apu_seen_q`，直到按 BTN0 清除。LED2 只能证明 APU 曾完成，最终正确性以 LED0、LD4
+绿色和阶段码 `7F` 为准。完整说明见
+[06_NO_USB_TTL_BOARD_DEBUG.md](06_NO_USB_TTL_BOARD_DEBUG.md)。
 
 ### 4.4 BRAM 资源适配
 

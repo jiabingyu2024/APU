@@ -48,21 +48,22 @@ boot_ram  sim_console   soc_timer   default_slave
 
 ## 4. 地址译码和返回优先级
 
-`soc_interconnect` 组合计算四个选择条件：
+`soc_interconnect` 组合计算六个选择条件：
 
 ```text
 ram_select     = mem_addr < 0x0001_0000
 console_select = (mem_addr & 0xffff_f000) == 0x1000_0000
 timer_select   = (mem_addr & 0xffff_f000) == 0x1000_1000
-default_select = 前三者全部不成立
+apu_select     = 0x2000_0000 <= mem_addr < 0x2000_4000
+model_select   = 0x4000_0000 <= mem_addr < 0x4008_0000
+default_select = 前五者全部不成立
 ```
 
-`ram_valid/console_valid/timer_valid/default_valid` 中同一时刻只能有一个为 1。返回优先级按
-RAM、console、Timer、default 排列，但正确译码下不会出现两个 `ready` 同时为 1。
+各 slave 的 `valid` 同一时刻只能有一个为 1。返回优先级按 RAM、console、Timer、APU、
+model、default 排列，但正确译码下不会出现两个 `ready` 同时为 1。
 
 如果地址范围发生重叠，两个 slave 可能同时执行写操作，返回数据也会由代码优先级而不是
-架构定义决定。因此后续增加 APU 时必须先检查 `0x2000_0000..0x2000_3FFF` 与现有范围
-无重叠，并新增 one-hot 断言。
+架构定义决定。因此修改地址图时必须检查所有范围无重叠，并新增 one-hot 断言。
 
 ## 5. 正常读时序
 

@@ -8,7 +8,7 @@
 - FPGA 具体器件型号和封装；
 - PL 外部时钟频率、时钟管脚和电平标准；
 - 复位按键极性与管脚；
-- USB-UART TX 管脚和波特率；
+- BTN/SW/LED/RGB 管脚与有效电平；PL UART 仅作为可选接口；
 - 可用 Block RAM 数量是否容纳 boot RAM、model ROM 和 APU SRAM；
 - 是否需要把 model ROM 改为 QSPI/SDRAM 流式读取。
 
@@ -19,11 +19,11 @@
 3. H16 输入 125 MHz，经 PL 内 MMCM 生成 25 MHz；`CLK_HZ=25_000_000`，UART 保持 115200。
 4. 添加 `soc/build/firmware.hex` 和 `soc/build/model.hex` 为 memory initialization 文件；
    若 Vivado 工程工作目录不同，覆盖顶层参数 `FIRMWARE_INIT_FILE/MODEL_INIT_FILE`。
-5. 使用 `fpga/constraints/pynq_z2.xdc`：H16 时钟、BTN0、PMODB UART TX 和四个 LED。
+5. 使用 `fpga/constraints/pynq_z2.xdc`：H16、BTN0/BTN1、SW0/SW1、普通 LED 和 RGB LED。
 6. 检查 125 MHz 输入时钟和 MMCM 派生的 25 MHz/40 ns 时钟，并检查复位同步器路径。
 7. 综合后检查 BRAM/DSP/LUT/FF 使用率和未约束端口。
 8. 实现后检查 WNS/TNS；重点观察 Ctrl 到 Feature SRAM、APU bridge 和 PicoRV32 路径。
-9. 生成 bitstream，下载后串口应依次打印完整 PASS 日志。
+9. 生成 bitstream，下载后阶段码应从 `01` 运行到 `7F`，最终 LED0/2 亮、LED1 灭。
 
 ## 3. ARM PS 禁用验收
 
@@ -40,8 +40,8 @@
 
 ## 4. 上板成功标准
 
-- UART 输出 `SOC PREBOARD PASS`；
-- `done_o=1`、`trap_o=0`；
+- 阶段码为 `7F`，`done_o=1`、`trap_o=0`；
+- LED0/2 亮、LED1 灭、LED3 心跳、LD4 绿色；
 - 完整验收运行期间两个 ARM 核保持 reset 和 clock-stop；
 - 完整网络结果仍通过固件内 golden 比较；
 - 保存综合 utilization、timing summary、层次图和串口日志用于报告。
