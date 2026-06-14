@@ -1,0 +1,22 @@
+# DMA 赛道文档
+
+本目录记录基于 `apuYjb` 的 PS+PL 架构升级路线。目标数据面为
+AXI-Stream + AXI DMA，控制面保留少量 AXI-Lite 寄存器。
+
+## 文档索引
+
+1. [当前状态与工作计划](00_CURRENT_STATE_AND_WORK_PLAN.md)
+
+后续建议按以下顺序补充：
+
+```text
+01_DMA_ARCHITECTURE.md
+02_STREAM_PACKET_PROTOCOL.md
+03_RTL_MODULE_AND_VERIFICATION.md
+04_VIVADO_BLOCK_DESIGN.md
+05_PYNQ_ZERO_COPY_DRIVER.md
+06_FUNCTIONAL_ACCEPTANCE.md
+07_PERFORMANCE_REPORT.md
+08_AXI_LITE_VS_DMA_REPORT.md
+```
+

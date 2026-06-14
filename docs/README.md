@@ -69,6 +69,7 @@
 
 | 文档 | 简介 |
 | --- | --- |
+| [DMA 高性能数据流赛道](dma/README.md) | 基于 `apuYjb` 的 AXI-Stream、AXI DMA、零拷贝和性能验收路线 |
 | [RISC-V 全自主 SoC + APU 实施指南](explore/RISCV_SOC_APU_PROJECT_GUIDE.md) | 面向大三课程项目的 PicoRV32 选型、SoC 架构、总线桥、裸机工具链、模型搬运、FPGA 上板和分阶段验收路线 |
 | [PicoRV32 克隆后学习与接入 APU](explore/PICORV32_CLONE_TO_APU_INTEGRATION.md) | 克隆后的阅读顺序、官方测试、第三方 IP 管理、CPU+BRAM 最小系统、native 总线、AHB bridge 和逐步接入现有 APU 的操作手册 |
 
