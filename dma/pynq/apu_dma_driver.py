@@ -84,7 +84,7 @@ class ApuDmaOverlay:
         bitstream,
         dma_name="axi_dma_0",
         ctrl_name="apu_dma_0",
-        require_interrupts=True,
+        require_interrupts=False,
     ):
         self.overlay = Overlay(bitstream)
         self.dma = getattr(self.overlay, dma_name)
@@ -95,12 +95,15 @@ class ApuDmaOverlay:
             getattr(self.dma.sendchannel, "_interrupt", None) is not None
             and getattr(self.dma.recvchannel, "_interrupt", None) is not None
         )
+        self.wait_mode = "interrupt" if self.interrupt_mode else "polling"
         if require_interrupts and not self.interrupt_mode:
             raise RuntimeError(
-                "DMA interrupts are unavailable; CPU<10% acceptance requires interrupt waits"
+                "DMA interrupts are unavailable. Functional tests can run with "
+                "polling, but CPU<10% acceptance requires interrupt-backed waits."
             )
         if self.ctrl.read(REG_ID) != 0x44555041:
             raise RuntimeError("APU DMA control ID mismatch; bit and hwh may not match")
+        self._event_loop = None
 
     def _resolve_ip_key(self, requested):
         if requested in self.overlay.ip_dict:
@@ -199,6 +202,18 @@ class ApuDmaOverlay:
             raise
 
     def execute(self, tx_buffer, used_bytes, expected_response_bytes):
-        return asyncio.run(
+        if not self.interrupt_mode:
+            return asyncio.run(
+                self.execute_async(tx_buffer, used_bytes, expected_response_bytes)
+            )
+        try:
+            self._event_loop = asyncio.get_event_loop()
+        except RuntimeError:
+            self._event_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._event_loop)
+        if self._event_loop.is_closed():
+            self._event_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._event_loop)
+        return self._event_loop.run_until_complete(
             self.execute_async(tx_buffer, used_bytes, expected_response_bytes)
         )

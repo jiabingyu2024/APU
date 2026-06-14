@@ -1,84 +1,136 @@
-# Vivado GUI：建立完整APU DMA工程并导出Overlay
+# Vivado Tcl 工程生成和 bit/hwh 导出指南
 
-## 1. 前提
+本页记录当前真实 APU DMA overlay 的 Vivado 操作。不要覆盖旧
+`apuYjb/myDesign.bit/.hwh`。
 
-- Vivado 2023.2；
-- 已安装PYNQ-Z2 board files；
-- 仓库路径中能看到`rtl/`、`dma/rtl/`和`dma/vivado/`；
-- 不要覆盖`apuYjb/myDesign.bit/.hwh`。
+## 1. 路径原则
 
-本方案是PS+PL DMA方案，PS必须启用。它与之前“禁用ARM硬核”的自研SoC路线不同。
-
-## 2. 创建工程
-
-打开Vivado，在Tcl Console执行：
+Vivado 在 Windows 下容易被长路径影响。工程和 IP 打包临时目录使用短路径：
 
 ```tcl
-cd /home/jiabingyu/prj/26_myprj/APU
+set ::env(APU_DMA_IP_BUILD_DIR) {E:/apu_dma_ip_pack}
+set ::env(APU_DMA_PROJECT_DIR)  {E:/apu_dma_bd}
+```
+
+仓库路径保持为：
+
+```tcl
+cd {E:/Resources/01_lessons/class2_NS/APU/finalTest/prj/APU}
+```
+
+## 2. 从 Tcl 创建完整工程
+
+在 Vivado 2023.2 Tcl Console 或 batch 中执行：
+
+```tcl
+cd {E:/Resources/01_lessons/class2_NS/APU/finalTest/prj/APU}
+
+set ::env(APU_DMA_IP_BUILD_DIR) {E:/apu_dma_ip_pack}
+source dma/vivado/package_apu_dma_ip.tcl
+
+set ::env(APU_DMA_PROJECT_DIR) {E:/apu_dma_bd}
 source dma/vivado/create_apu_dma_project.tcl
 ```
 
-Windows Vivado访问WSL目录不稳定时，把整个仓库放到Windows盘，再对实际Windows路径执行
-`cd`。脚本成功结束应打印：
+成功标志：
 
 ```text
+APU_DMA_IP_PACKAGED=...
+APU_DMA_IP_VLNV=apu.local:user:apu_dma:1.0
 APU_DMA_STATUS=BD_VALIDATED
+Project: E:/apu_dma_bd/apu_dma.xpr
 ```
 
-脚本到此停止，不会自动运行综合或生成bitstream。
+`create_apu_dma_project.tcl` 会实例化已经封装好的 `apu.local:user:apu_dma:1.0`，
+不是直接把 RTL module reference 拉进 BD。
 
-## 3. GUI中必须检查
+## 3. BD 必查连接
 
-打开`apu_dma_bd`，确认：
+打开 `E:/apu_dma_bd/apu_dma.xpr`，检查 `apu_dma_bd`：
 
-1. `axi_dma_0/M_AXIS_MM2S -> axis_fifo_job -> apu_dma_0/S_AXIS_JOB`；
-2. `apu_dma_0/M_AXIS_RESULT -> axis_fifo_result -> axi_dma_0/S_AXIS_S2MM`；
-3. DMA MM2S和S2MM memory master分别经SmartConnect连接PS HP0、HP1；
-4. PS GP0只连接DMA寄存器和APU DMA控制寄存器；
-5. 三个中断均进入`xlconcat_irq -> IRQ_F2P`；
-6. 所有数据面时钟为100 MHz，复位来自`proc_sys_reset_0/peripheral_aresetn`；
-7. Address Editor中DMA为`0x40400000`，APU DMA控制为`0x43C00000`。
+```text
+axi_dma_0/M_AXIS_MM2S -> axis_fifo_job -> apu_dma_0/S_AXIS_JOB
+apu_dma_0/M_AXIS_RESULT -> axis_fifo_result -> axi_dma_0/S_AXIS_S2MM
+axi_dma_0/M_AXI_MM2S -> smartconnect_mm2s -> PS S_AXI_HP0
+axi_dma_0/M_AXI_S2MM -> smartconnect_s2mm -> PS S_AXI_HP1
+PS M_AXI_GP0 -> smartconnect_ctrl -> axi_dma_0 / apu_dma_0 / axi_intc_0
+xlconcat_irq/dout -> axi_intc_0/intr
+axi_intc_0/irq -> processing_system7_0/IRQ_F2P
+```
 
-如果`apu_dma_0`没有显示`S_AXIS_JOB/M_AXIS_RESULT/S_AXI_CTRL`，不要继续生成bitstream；先检查
-`apu_dma_top.sv`是否作为SystemVerilog加入、compile order中package是否在其他DMA RTL之前。
+地址：
 
-## 4. 综合、实现和bitstream
+```text
+axi_dma_0  : 0x40400000
+axi_intc_0 : 0x41800000
+apu_dma_0  : 0x43C00000
+```
 
-在Flow Navigator依次执行：
+当前 bring-up bit 使用 25 MHz 单时钟。25 MHz 版本用于功能和稳定性验证；
+要通过 `wall_mbps_mean >= 200`，需要重新生成更高频率版本，建议先做 100 MHz。
 
-1. `Run Synthesis`；
-2. 打开synthesized design，检查没有latch、多驱动、未连接关键端口；
-3. `Run Implementation`；
-4. 查看Timing Summary，要求`WNS >= 0`且`TNS = 0`；
-5. 查看Utilization，确认BRAM/LUT没有超过器件资源；
-6. `Generate Bitstream`。
+## 4. 生成 bitstream
 
-任何一步报错都应保留完整log，不要只截最后一行。
+GUI：
 
-## 5. 导出bit和hwh
+1. `Run Synthesis`
+2. `Open Synthesized Design`，检查 critical warning
+3. `Run Implementation`
+4. `Report Timing Summary`
+5. 确认 `WNS >= 0`、`TNS = 0`
+6. `Generate Bitstream`
 
-bitstream完成后，在同一Vivado工程Tcl Console执行：
+Tcl：
 
 ```tcl
-source /home/jiabingyu/prj/26_myprj/APU/dma/vivado/export_apu_dma_overlay.tcl
+cd {E:/Resources/01_lessons/class2_NS/APU/finalTest/prj/APU}
+set ::env(APU_DMA_PROJECT_DIR) {E:/apu_dma_bd}
+source dma/vivado/build_apu_dma_bitstream.tcl
 ```
 
-结果应生成：
+## 5. 导出 overlay
+
+在已打开且已经生成 bitstream 的工程中执行：
+
+```tcl
+source {E:/Resources/01_lessons/class2_NS/APU/finalTest/prj/APU/dma/vivado/export_apu_dma_overlay.tcl}
+```
+
+输出：
 
 ```text
 dma/overlay/apu_dma.bit
 dma/overlay/apu_dma.hwh
 ```
 
-两个文件必须来自同一次工程生成，文件名必须同名。不要把新bit与旧`myDesign.hwh`混用。
+bit 和 hwh 必须同一次构建产生，不能混用。
 
-## 6. 需要保存的报告
+## 6. 导出 Vivado 报告
 
-在Vivado GUI导出或保存到`dma/vivado/reports/apu_dma/`：
+```tcl
+source {E:/Resources/01_lessons/class2_NS/APU/finalTest/prj/APU/dma/vivado/report_apu_dma_design.tcl}
+```
 
-- synthesis utilization；
-- implementation utilization；
-- timing summary；
-- DRC report；
-- address map截图或报告；
-- 关键warning清单。
+报告目录：
+
+```text
+dma/vivado/reports/apu_dma/
+```
+
+至少保留：
+
+```text
+timing_summary.rpt
+utilization.rpt
+drc.rpt
+clock_interaction.rpt
+```
+
+## 7. 不能忽略的问题
+
+- `apu_dma_0` 接口缺失或 IP repository 未刷新；
+- `axi_intc_0` 未接入 GP0 或未接到 PS `IRQ_F2P`；
+- AXIS `TDATA/TKEEP/TLAST` 宽度不一致；
+- 地址段未分配；
+- bit/hwh 不是同一轮导出；
+- Implementation timing 为负或 DRC 有 error。

@@ -1,25 +1,27 @@
-# DMA 赛道工作区
+# DMA 支线工作区
 
-本目录用于“赛道二：高性能数据流架构”的新增工程，不覆盖 `apuYjb/` 原始
-PS+PL Overlay，也不复用 `soc/` 纯 PL 路线。
+本目录只维护真实 `apu_dma.bit/.hwh` 的 APU DMA 路线。旧
+`apuYjb/myDesign.bit/.hwh` 不放在这里，只作为 MMIO/AHB 基线由
+`dma/benchmark/benchmark_mmio.py` 调用。
 
-计划中的目录边界如下：
+当前保留的主要入口：
 
 ```text
 dma/
-  rtl/          AXI-Stream 适配、任务控制、性能计数器及 APU DMA wrapper
-  tb/           AXI-Stream、任务协议和端到端自检测试
-  vivado/       Block Design Tcl、IP 打包和工程生成脚本
-  pynq/         Overlay 驱动、零拷贝缓冲区和功能测试
-  benchmark/    AXI-Lite/DMA 对比与 CPU 占用率测试脚本
-  reports/      工具生成的原始结果，不手工伪造
+  rtl/          APU DMA wrapper、AXIS job decoder、loader、streamer、寄存器
+  vivado/       package IP、创建 APU DMA BD、综合实现、导出 overlay 的 Tcl
+  pynq/         PYNQ driver、job 构造、smoke、完整网络 wrapper
+  benchmark/    旧 MMIO 基线和真实 APU DMA loader benchmark
+  tools/        辅助脚本，包括 Jupyter 远程执行脚本
+  overlay/      当前真实 APU DMA overlay: apu_dma.bit / apu_dma.hwh
+  reports/      板上运行产生的 CSV/JSON
 ```
 
-当前已完成协议软件测试、DMA RTL初版、完整BD生成Tcl、零拷贝PYNQ驱动和板上测试脚本。
-Vivado HDL编译、综合、实现、bitstream和板上数据仍待用户在GUI/PYNQ执行。正式架构与阶段门槛见
-[`docs/dma/00_CURRENT_STATE_AND_WORK_PLAN.md`](../docs/dma/00_CURRENT_STATE_AND_WORK_PLAN.md)。
-预计文件和 Vivado/PYNQ 完整实施顺序见
-[`docs/dma/01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md`](../docs/dma/01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md)。
-实际操作从
-[`docs/dma/06_VIVADO_GUI_BUILD_AND_EXPORT.md`](../docs/dma/06_VIVADO_GUI_BUILD_AND_EXPORT.md)
-继续。
+已删除独立 DMA loopback 路线。当前仓库没有
+`dma/overlay/loopback/apu_dma_loopback.bit`，因此不要再把 loopback 作为必跑项。
+
+实际操作见：
+
+- `docs/dma/06_VIVADO_GUI_BUILD_AND_EXPORT.md`
+- `docs/dma/07_PYNQ_BRINGUP_AND_TEST.md`
+- `docs/dma/10_BOARD_RUN_SUMMARY.md`

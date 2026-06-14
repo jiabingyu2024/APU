@@ -24,20 +24,36 @@ def main():
         "--bitstream", default=os.path.join(DMA_ROOT, "overlay", "apu_dma.bit")
     )
     parser.add_argument("--repeats", type=int, default=16)
+    parser.add_argument("--clock-mhz", type=float, default=25.0)
     parser.add_argument("--warmup", type=int, default=3)
     parser.add_argument("--iterations", type=int, default=20)
     parser.add_argument(
         "--output-dir", default=os.path.join(DMA_ROOT, "reports", "raw")
     )
+    parser.add_argument(
+        "--allow-polling",
+        action="store_true",
+        help="Allow functional diagnostics when DMA interrupts are unavailable.",
+    )
     args = parser.parse_args()
 
     if args.repeats <= 0:
         raise SystemExit("--repeats must be positive")
+    if args.clock_mhz <= 0:
+        raise SystemExit("--clock-mhz must be positive")
 
     payload = np.arange(256, dtype=np.uint64) ^ np.uint64(0x5AA5000000000000)
     packet_count = args.repeats * 64
     capacity = packet_count * (32 + payload.nbytes) + 32
-    driver = ApuDmaOverlay(os.path.abspath(args.bitstream), require_interrupts=True)
+    driver = ApuDmaOverlay(
+        os.path.abspath(args.bitstream),
+        require_interrupts=not args.allow_polling,
+    )
+    if not driver.interrupt_mode:
+        print(
+            "NOTE: running with polling waits. This is functional-only; CPU<10% "
+            "acceptance requires PYNQ DMA interrupts."
+        )
     tx = driver.allocate_job_buffer(capacity)
     try:
         builder = JobBuilder(tx, sequence_id=1)
@@ -58,7 +74,7 @@ def main():
             status = driver.read_status()
 
             if iteration >= args.warmup:
-                hardware_seconds = status["busy_cycles"] / 100_000_000.0
+                hardware_seconds = status["busy_cycles"] / (args.clock_mhz * 1_000_000.0)
                 records.append(
                     {
                         "iteration": iteration - args.warmup,
@@ -97,6 +113,8 @@ def main():
             "schema_version": 1,
             "bitstream": os.path.abspath(args.bitstream),
             "job_bytes": used_bytes,
+            "wait_mode": driver.wait_mode,
+            "clock_mhz": args.clock_mhz,
             "repeats": args.repeats,
             "iterations": args.iterations,
             "wall_mbps_mean": float(np.mean(wall_bw)),

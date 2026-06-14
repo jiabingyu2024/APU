@@ -2,13 +2,13 @@
 // Design: apu_dma
 // Module: apu_dma_top
 // Generated: 2026-06-14
-// Source: docs/dma/stage4_rtl_architecture.json + docs/dma/stage1_spec_extraction.json
+// Source: docs/dma/04_STREAM_PACKET_PROTOCOL.md + docs/dma/05_RTL_IMPLEMENTATION_REVIEW.md
 
 module apu_dma_top #(
     parameter int AXIL_ADDR_WIDTH = 8
 ) (
     (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 ACLK CLK" *)
-    (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME ACLK, ASSOCIATED_BUSIF S_AXIS_JOB:M_AXIS_RESULT:S_AXI_CTRL, ASSOCIATED_RESET ARESETN, FREQ_HZ 100000000" *)
+    (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME ACLK, ASSOCIATED_BUSIF S_AXIS_JOB:M_AXIS_RESULT:S_AXI_CTRL, ASSOCIATED_RESET ARESETN, FREQ_HZ 25000000" *)
     input  logic                       aclk,
     (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 ARESETN RST" *)
     (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME ARESETN, POLARITY ACTIVE_LOW" *)

@@ -1,102 +1,183 @@
-# PYNQ上板：无USB-TTL的Bring-up流程
+# PYNQ 上板、远程操作和测试命令
 
-## 1. 不需要USB-TTL
+## 1. 当前板子信息
 
-DMA路线使用PYNQ Linux、PS和PL。调试通过Jupyter、SSH或以太网完成，不需要外置USB-TTL。
-普通Micro-USB线可用于供电/JTAG，但它不是本流程的数据传输通道。电脑与PYNQ应通过网线或
-可用的网络连接互通。
-
-## 2. 上传文件
-
-把整个`dma/`目录传到板上，例如：
-
-```bash
-scp -r dma xilinx@<BOARD_IP>:/home/xilinx/APU/
-```
-
-确认板上存在：
+当前使用 Jupyter Notebook 服务操作 PYNQ：
 
 ```text
-/home/xilinx/APU/dma/overlay/apu_dma.bit
-/home/xilinx/APU/dma/overlay/apu_dma.hwh
-/home/xilinx/APU/dma/pynq/
+URL: http://192.168.137.2:9090/
+password: xilinx
+server root: /home/xilinx/jupyter_notebooks
+project root: /home/xilinx/jupyter_notebooks/APUdma
 ```
 
-## 3. 首次检查顺序
+普通浏览器可访问 `http://192.168.137.2/`，会跳转到 `:9090`。
 
-先进入目录：
+## 2. 直接从 PC 操作板子
 
-```bash
-cd /home/xilinx/APU
+仓库提供了 PowerShell 辅助脚本：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File dma/tools/pynq_jupyter_exec.ps1 `
+  -Code "import os, subprocess; print(os.getcwd()); print(subprocess.check_output(['hostname']).decode())"
 ```
 
-运行ACT RAM往返测试：
+该脚本会：
 
-```bash
-python3 dma/pynq/test_apu_dma_smoke.py
+1. 登录 Jupyter；
+2. 创建临时 Python kernel；
+3. 执行 `-Code` 中的 Python；
+4. 打印 stdout/stderr；
+5. 删除临时 kernel。
+
+它适合跑检查、测试和短 benchmark。长时间运行时提高 `-TimeoutMinutes`：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File dma/tools/pynq_jupyter_exec.ps1 `
+  -TimeoutMinutes 60 `
+  -Code "print('ready')"
 ```
 
-该测试执行：
+## 3. 上传文件
+
+推荐把整个工程放在：
 
 ```text
-DDR -> DMA MM2S -> LOAD ACT -> READ ACT -> DMA S2MM -> DDR
+/home/xilinx/jupyter_notebooks/APUdma
 ```
 
-它不运行卷积，因此可先隔离DMA、packet、RAM写入和同步读返回问题。成功标志是：
+至少要有：
+
+```text
+dma/overlay/apu_dma.bit
+dma/overlay/apu_dma.hwh
+dma/pynq/
+dma/benchmark/
+apuYjb/param/
+```
+
+只手动操作时可用 Jupyter 网页上传或 `scp`。若使用 Jupyter API 上传，必须保持 bit/hwh
+同一轮构建。
+
+## 4. 板上命令顺序
+
+进入工程目录：
+
+```bash
+cd /home/xilinx/jupyter_notebooks/APUdma
+```
+
+确认 overlay 和中断：
+
+```bash
+python3 - <<'PY'
+from pynq import Overlay
+import json
+ol = Overlay('dma/overlay/apu_dma.bit', download=False)
+print(sorted(ol.ip_dict.keys()))
+print(json.dumps(ol.interrupt_pins, indent=2, default=str))
+PY
+```
+
+期望包含：
+
+```text
+axi_dma_0
+axi_intc_0
+apu_dma_0
+axi_dma_0/mm2s_introut -> axi_intc_0 index 0
+axi_dma_0/s2mm_introut -> axi_intc_0 index 1
+apu_dma_0/irq          -> axi_intc_0 index 2
+```
+
+## 5. 必跑功能测试
+
+```bash
+python3 dma/pynq/test_apu_dma_smoke.py --require-interrupts
+```
+
+通过标志：
 
 ```text
 APU DMA smoke test PASS
+wait_mode: interrupt
 ```
 
-如果HWH没有中断信息，只允许临时诊断：
+如果失败并提示 interrupt unavailable，优先检查 HWH 是否包含 `axi_intc_0`，以及 bit/hwh
+是否同一轮导出。
+
+## 6. 真实 loader benchmark
+
+25 MHz 当前口径：
 
 ```bash
-python3 dma/pynq/test_apu_dma_smoke.py --allow-polling
+python3 dma/benchmark/benchmark_apu_dma_transport.py \
+  --clock-mhz 25 \
+  --repeats 256 \
+  --warmup 1 \
+  --iterations 5
 ```
 
-polling结果不能用于CPU占用率验收。
-
-## 4. 测试原始DMA上限
-
-先用阶段B loopback bit/hwh执行：
+100 MHz bit 口径：
 
 ```bash
-python3 dma/pynq/test_dma_loopback.py \
-  --bitstream dma/overlay/loopback/apu_dma_loopback.bit
+python3 dma/benchmark/benchmark_apu_dma_transport.py \
+  --clock-mhz 100 \
+  --repeats 256 \
+  --warmup 1 \
+  --iterations 5
 ```
 
-它回答“PS DDR、HP端口和AXI DMA本身是否达到200 MB/s”。
-
-## 5. 测试真实loader数据通路
-
-```bash
-python3 dma/benchmark/benchmark_apu_dma_transport.py
-```
-
-默认job约2 MiB，重复覆盖64个weight bank，避免短传输的软件固定开销掩盖带宽。输出：
+输出：
 
 ```text
 dma/reports/raw/apu_dma_transport_samples.csv
 dma/reports/raw/apu_dma_transport_summary.json
 ```
 
-验收重点：
+`--allow-polling` 只能用于诊断，不能用于 CPU<10% 验收。
 
-- `wall_mbps_mean >= 200`；
-- `cpu_percent_mean < 10`；
-- `mm2s_stall_cycles`用于判断loader是否成为瓶颈；
-- 必须是interrupt模式，不能用polling数据替代。
+## 7. 完整网络 DMA wrapper
 
-## 6. 故障定位
+零输入 smoke：
 
-| 现象 | 优先检查 |
-|---|---|
-| Overlay加载失败 | bit/hwh是否同名且同次生成 |
-| 找不到`axi_dma_0` | HWH错误或BD实例名改变 |
-| ID mismatch | `apu_dma_0`地址/HWH错误，或bit未下载 |
-| DMA一直busy | S2MM是否先启动、TLAST是否由FINAL/ERROR产生 |
-| smoke数据错位 | AXIS宽度/TKEEP、feature同步读延迟、地址单位 |
-| ERROR响应 | `LAST_ERROR`和response status错误码 |
-| CPU占用高 | 是否有DMA中断、是否使用`wait_async`、job是否过短 |
-| 带宽低但stall高 | loader背压或DMA/FIFO配置问题 |
+```bash
+python3 - <<'PY'
+import sys, numpy as np
+sys.path.insert(0, 'dma/pynq')
+from inference_dma import ApuDmaNetwork
 
+inp = np.zeros((1, 64, 32, 32), dtype=np.uint8)
+with ApuDmaNetwork('dma/overlay/apu_dma.bit', 'apuYjb/param') as net:
+    out = net.execute(inp)
+    print(out.shape, int(out.sum()))
+PY
+```
+
+当前状态：入口能运行，但重复零输入输出 SHA 不稳定，不能作为 bit-exact 通过证据。
+
+## 8. 旧 MMIO 基线
+
+旧 baseline 使用 `apuYjb/myDesign.bit/.hwh`：
+
+```bash
+python3 dma/benchmark/benchmark_mmio.py --warmup 1 --iterations 5
+```
+
+完整默认测试更慢：
+
+```bash
+python3 dma/benchmark/benchmark_mmio.py
+```
+
+输出：
+
+```text
+dma/reports/raw/mmio_transfer_samples.csv
+dma/reports/raw/mmio_transfer_summary.json
+```
+
+## 9. 当前不维护 loopback
+
+当前仓库没有 `dma/overlay/loopback/apu_dma_loopback.bit`，也不再维护独立 loopback Tcl。
+不要再执行旧的 `test_dma_loopback.py` 命令。

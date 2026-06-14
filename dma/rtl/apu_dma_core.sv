@@ -2,7 +2,7 @@
 // Design: apu_dma
 // Module: apu_dma_core
 // Generated: 2026-06-14
-// Source: docs/dma/stage4_rtl_architecture.json + docs/dma/stage1_spec_extraction.json
+// Source: docs/dma/04_STREAM_PACKET_PROTOCOL.md + docs/dma/05_RTL_IMPLEMENTATION_REVIEW.md
 
 module apu_dma_core #(
     parameter int P_INSTRUCTION_NUM    = 16,

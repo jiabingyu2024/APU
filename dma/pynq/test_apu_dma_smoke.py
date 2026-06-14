@@ -22,7 +22,16 @@ def main():
     )
     parser.add_argument("--words", type=int, default=256)
     parser.add_argument("--sequence-id", type=int, default=1)
-    parser.add_argument("--allow-polling", action="store_true")
+    parser.add_argument(
+        "--require-interrupts",
+        action="store_true",
+        help="Fail if PYNQ cannot create DMA interrupt objects.",
+    )
+    parser.add_argument(
+        "--allow-polling",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     args = parser.parse_args()
 
     if args.words <= 0 or args.words > 1024:
@@ -30,7 +39,7 @@ def main():
 
     driver = ApuDmaOverlay(
         os.path.abspath(args.bitstream),
-        require_interrupts=not args.allow_polling,
+        require_interrupts=args.require_interrupts,
     )
     tx = driver.allocate_job_buffer(32 + args.words * 8 + 32 + 32)
     try:
@@ -65,6 +74,12 @@ def main():
                 )
 
         print("APU DMA smoke test PASS")
+        print("wait_mode:", driver.wait_mode)
+        if not driver.interrupt_mode:
+            print(
+                "NOTE: polling is functional-only; CPU<10% acceptance requires "
+                "PYNQ DMA interrupts."
+            )
         print(driver.read_status())
     finally:
         tx.freebuffer()

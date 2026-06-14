@@ -47,6 +47,9 @@ class ApuDmaNetwork:
         response = await self.driver.execute_async(
             self.tx, self.used_bytes, self.builder.expected_response_bytes
         )
+        return self._parse_response(response, input_tensor)
+
+    def _parse_response(self, response, input_tensor):
         with response:
             data_packets = [
                 packet
@@ -64,9 +67,11 @@ class ApuDmaNetwork:
         return output
 
     def execute(self, input_tensor):
-        import asyncio
-
-        return asyncio.run(self.execute_async(input_tensor))
+        self.tx[self.input_slice] = pack_input_nchw(input_tensor)
+        response = self.driver.execute(
+            self.tx, self.used_bytes, self.builder.expected_response_bytes
+        )
+        return self._parse_response(response, input_tensor)
 
     def close(self):
         if self.tx is not None:

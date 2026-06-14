@@ -6,7 +6,11 @@ file mkdir $overlay_dir
 
 set project_dir [get_property DIRECTORY [current_project]]
 set top_name [get_property TOP [get_filesets sources_1]]
-set bit_file [file join $project_dir apu_dma.runs impl_1 ${top_name}.bit]
+if {[info exists ::apu_dma_bit_file]} {
+    set bit_file [file normalize $::apu_dma_bit_file]
+} else {
+    set bit_file [file join $project_dir apu_dma.runs impl_1 ${top_name}.bit]
+}
 set hwh_file [file join $project_dir apu_dma.gen sources_1 bd apu_dma_bd hw_handoff apu_dma_bd.hwh]
 
 if {![file exists $bit_file]} {
