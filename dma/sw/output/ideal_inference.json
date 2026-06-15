@@ -1,0 +1,102 @@
+{
+  "alignment": "dma/final_tests/02_mydesign_inference.py and 05_apu_dma_inference.py",
+  "apu_input_sha256": "698df7862645dd6b34f31c15865550aa695ea8fe69e3d5cfc6bb8b4a012e6dce",
+  "apu_input_shape": [
+    1,
+    64,
+    32,
+    32
+  ],
+  "apu_output_sha256": "a236f489b1f93b1df7d9f801b436f70b644ab3874329ff13b2f979b7fd97c345",
+  "apu_output_shape": [
+    1,
+    256,
+    8,
+    8
+  ],
+  "checkpoint": "apuYjb/model_best.pth.tar",
+  "checkpoint_sha256": "008a6afb2b7633f8df5e65fc45feefc6811ca79ff41a5090e393830f69314b8e",
+  "class": "plane",
+  "exported_threshold_checks": {
+    "layer1.0.conv1": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.993743896484375
+    },
+    "layer1.0.conv2": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.99542236328125
+    },
+    "layer1.1.conv1": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.9984130859375
+    },
+    "layer1.1.conv2": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.983734130859375
+    },
+    "layer2.0.conv1": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.99560546875
+    },
+    "layer2.0.conv2": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.99774169921875
+    },
+    "layer2.1.conv1": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.99951171875
+    },
+    "layer2.1.conv2": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.99847412109375
+    },
+    "layer3.0.conv1": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.99969482421875
+    },
+    "layer3.0.conv2": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.9998779296875
+    },
+    "layer3.1.conv1": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.9967041015625
+    },
+    "layer3.1.conv2": {
+      "direction_mismatch": 0,
+      "max_threshold_error": 0.0
+    }
+  },
+  "exported_weight_mismatch_bits": {
+    "layer1.0.conv1": 0,
+    "layer1.0.conv2": 0,
+    "layer1.1.conv1": 0,
+    "layer1.1.conv2": 0,
+    "layer2.0.conv1": 0,
+    "layer2.0.conv2": 0,
+    "layer2.0.downsample.0": 0,
+    "layer2.1.conv1": 0,
+    "layer2.1.conv2": 0,
+    "layer3.0.conv1": 0,
+    "layer3.0.conv2": 0,
+    "layer3.0.downsample.0": 0,
+    "layer3.1.conv1": 0,
+    "layer3.1.conv2": 0
+  },
+  "image": "apuYjb/image/cifar10_test_image.jpg",
+  "image_sha256": "f65f3c5a08208d134ec71b920355b5b1736177b23ba22dad28c288d17805d26d",
+  "logsoftmax": [
+    -0.10214167088270187,
+    -9.408522605895996,
+    -15.653603553771973,
+    -6.7206244468688965,
+    -2.3454010486602783,
+    -21.873140335083008,
+    -16.09051513671875,
+    -15.705318450927734,
+    -13.545016288757324,
+    -16.03282356262207
+  ],
+  "param_dir": "apuYjb/param",
+  "prediction": 0
+}

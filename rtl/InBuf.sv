@@ -1,214 +1,125 @@
-/*
-  InBuf #(
-      .P_BINDWIDTH(P_BINDWIDTH)
-  ) U_InBuf (
-      .clk        (clk),
-      .nRst       (nRst),
-      .iSelect    (InputBufSelect),
-        
-      .nWe        (InputBufNWe),
-      .iInstruction(Instruction[31:0]),
-      .iWriteDataA(ActData[P_BINDWIDTH-1:0]),
-      .iWriteDataB(OutData[P_BINDWIDTH-1:0]),
-      
-      .nCe        (1'b0),                      //Always enable
+`timescale 1ns/1ps
 
-      .oInData(InBufData[P_BINDWIDTH-1:0]),
-
-
-      .iActSramReadCenterAddr(ActReadCenterAddr[$clog2(P_FEATURE_MEMORY_SIZE/P_BINDWIDTH)-1:0]),
-      
-      .iComputeDone(ComputeDone)
-  );
-*/
-module InBuf 
-#(
-    parameter PERIOD=10,
-    parameter P_BINDWIDTH=64
-)
-(
-    input clk,
-    input nRst,
-    input iSelect,
-    
-    input nWe,
-    input [31:0] iInstruction,
-    input [P_BINDWIDTH-1:0] iWriteDataA ,
-    input [P_BINDWIDTH-1:0] iWriteDataB ,
-    input nCe,
-    output logic [P_BINDWIDTH-1:0] oInData
-);  
-    logic [1:0]  calc_type;
-    logic [1:0]  kernel_size;
-    logic [2:0]  in_hw;
-    assign calc_type=iInstruction[31:30];
-    assign in_hw=iInstruction[27:25];
-
-    
-    
-    logic [P_BINDWIDTH-1:0] rBuf;
-    logic [P_BINDWIDTH-1:0] dataB,dataA,data;
-    logic[31:0] count;//记录残差卷计一次完整计算需要多少clk，conv7一次（4*9+2）*4个clk，conv6一次（2*9+1）*2个clk
-    logic[31:0] count_top;
-    assign count_top=(in_hw==3'b100)?38:152;
-
-    logic[1:0] fromram ;//输入是哪个ram
-    logic[P_BINDWIDTH-1:0] temp,temp1,temp2;//寄存
-
-    always_comb begin
-        if(count==1)
-        begin
-            if(iSelect==0)
-            begin
-                fromram=0;//dataA是主信号，要寄存dataB的值
-            end
-            else
-            begin
-                fromram=1;//dataB是主信号
-            end
-        end
-    end
-
-
-    always_comb begin 
-        if (calc_type==2'b01) begin
-            if (fromram!=iSelect) begin
-                if(count_top==38)//conv6一次（2*9+1）*2个clk
-                begin
-                    if (count==18) begin
-                        temp1=data;
-                    end
-                end
-                else//conv7一次（4*9+2）*4个clk
-                begin
-                    if (count==36) begin
-                        temp1=data;
-                    end
-                    else if(count==37)
-                    begin
-                        temp2=data;
-                    end
-                end
-            end
-        end
-    end
-    assign temp=(count_top==38)?temp1:(((count%38)==36)?temp1:temp2);
-
-
-    assign data=(iSelect)?iWriteDataB:iWriteDataA;
-    /*
-    always_comb begin 
-
-        if(calc_type==2'b00)
-        begin
-            if (iSelect) begin
-                data=iWriteDataB;
-            end
-            else
-            begin
-                data=iWriteDataA;
-            end
-        end
-    end
-    */
-    always_ff @ (posedge clk or negedge nRst)
-    begin
-        if(nRst==0)
-        begin
-        rBuf<=0;
-        count<=0;
-        end
-        else 
-        begin
-                
-            if(calc_type==2'b01)
-            begin
-                if (count<(count_top-1)) begin
-                    count<=count+1;
-                end
-                else
-                begin
-                    count<=0;
-                end
-            end
-            else
-            begin
-                count<=0;
-            end
-
-
-
-
-
-
-
-            if(nWe==1'b1)
-            begin
-                rBuf<=rBuf;
-                count<=0;
-            end
-            else
-            begin
-                if(count==0)
-                begin
-                    rBuf<=data;
-                end
-                else
-                begin
-                    if(count_top==38)//是卷积6，（2*9+1）*2个clk
-                    begin
-                        if ((fromram!=iSelect)&(count>20)) begin
-                            rBuf<=temp[P_BINDWIDTH-1:0];
-                        end
-                        else
-                        begin
-                            rBuf<=data;
-                        end
-                    end
-                    else//卷积7,conv7一次（4*9+2）*4个clk
-                    begin
-                        if ((fromram!=iSelect)&(count>40)) begin
-                            rBuf<=temp[P_BINDWIDTH-1:0];
-                        end
-                        else
-                        begin
-                            rBuf<=data;
-                        end
-                    end
-                end
-                
-            end
-
-        end
-    end
-    assign oInData=(nCe)?0:rBuf;
-endmodule
-/*
-module InBuf
-#(
- parameter PERIOD = 10, // 100MHz时钟频率
- parameter P_BINDWIDTH = 64 // 数据宽度
-)
-(
- input clk,
- input nRst,
- input nWe,
- input [P_BINDWIDTH-1:0] iWriteDataA,
- input [P_BINDWIDTH-1:0]iWriteDataB,
- input iSelect,
- input nCe,
- output wire [P_BINDWIDTH-1:0] oInData
+module InBuf #(
+    parameter int PERIOD = 10,
+    parameter int P_BINDWIDTH = 64
+) (
+    input  logic                    clk,
+    input  logic                    nRst,
+    input  logic                    iSelect,
+    input  logic                    nWe,
+    input  logic [31:0]             iInstruction,
+    input  logic [P_BINDWIDTH-1:0]  iWriteDataA,
+    input  logic [P_BINDWIDTH-1:0]  iWriteDataB,
+    input  logic                    nCe,
+    output logic [P_BINDWIDTH-1:0]  oInData
 );
-reg [P_BINDWIDTH-1:0] rBuf;
-always @(posedge clk or negedge nRst) begin
- if(~nRst) begin rBuf<=0;end
- else begin if(nWe==0&&iSelect==0) begin
- rBuf<=iWriteDataA;end
- else if(nWe==0&&iSelect==1) begin
- rBuf<=iWriteDataB;end
- else rBuf<=rBuf;end
-end
-assign oInData=(nCe)?0:rBuf;
-endmodule
 
-*/
+  localparam logic [1:0] CALC_RESIDUAL = 2'b01;
+  localparam logic [2:0] LAYER2_IN_HW  = 3'd4;
+  localparam logic [7:0] LAYER2_PERIOD = 8'd38;
+  localparam logic [7:0] LAYER3_PERIOD = 8'd152;
+
+  logic [1:0] calc_type;
+  logic [2:0] in_hw;
+  logic       residual_mode;
+  logic       layer2_mode;
+
+  logic [7:0] count;
+  logic [7:0] count_top;
+  logic       main_select;
+  logic [P_BINDWIDTH-1:0] replay_word0;
+  logic [P_BINDWIDTH-1:0] replay_word1;
+  logic [P_BINDWIDTH-1:0] selected_data;
+  logic [P_BINDWIDTH-1:0] shortcut_data;
+  logic [P_BINDWIDTH-1:0] replay_data;
+  logic                   replay_enable;
+  logic [P_BINDWIDTH-1:0] rBuf;
+
+  assign calc_type    = iInstruction[31:30];
+  assign in_hw        = iInstruction[27:25];
+  assign residual_mode = (calc_type == CALC_RESIDUAL);
+  assign layer2_mode   = (in_hw == LAYER2_IN_HW);
+  assign count_top     = layer2_mode ? LAYER2_PERIOD : LAYER3_PERIOD;
+
+  assign selected_data = iSelect ? iWriteDataB : iWriteDataA;
+
+  // The shortcut is always in the SRAM opposite the registered main source.
+  // Use main_select rather than the current iSelect so the final layer3
+  // shortcut word can still be captured after Ctrl switches back to main.
+  assign shortcut_data = main_select ? iWriteDataA : iWriteDataB;
+
+  always_comb begin
+    if (layer2_mode) begin
+      replay_data = replay_word0;
+    end else if ((count == 8'd74) ||
+                 (count == 8'd112) ||
+                 (count == 8'd150)) begin
+      replay_data = replay_word0;
+    end else begin
+      replay_data = replay_word1;
+    end
+
+    replay_enable = residual_mode && (iSelect != main_select);
+    if (layer2_mode) begin
+      replay_enable = replay_enable && (count > 8'd20);
+    end else begin
+      replay_enable = replay_enable && (count > 8'd40);
+    end
+  end
+
+  always_ff @(posedge clk or negedge nRst) begin
+    if (!nRst) begin
+      count        <= '0;
+      main_select  <= 1'b0;
+      replay_word0 <= '0;
+      replay_word1 <= '0;
+      rBuf         <= '0;
+    end else if (nWe) begin
+      count        <= '0;
+      main_select  <= iSelect;
+      replay_word0 <= '0;
+      replay_word1 <= '0;
+    end else begin
+      if (residual_mode) begin
+        if (count == count_top - 1'b1) begin
+          count <= '0;
+        end else begin
+          count <= count + 1'b1;
+        end
+
+        // Ctrl preselects the main SRAM before the instruction starts. Capture
+        // it after one active cycle, matching the original protocol.
+        if (count == 8'd1) begin
+          main_select <= iSelect;
+        end
+
+        // FeatureProcessor has a registered read output. The shortcut request
+        // occurs at 18 (layer2) or 36/37 (layer3), so capture one cycle later.
+        if (layer2_mode) begin
+          if (count == 8'd19) begin
+            replay_word0 <= shortcut_data;
+          end
+        end else begin
+          if (count == 8'd37) begin
+            replay_word0 <= shortcut_data;
+          end
+          if (count == 8'd38) begin
+            replay_word1 <= shortcut_data;
+          end
+        end
+      end else begin
+        count <= '0;
+      end
+
+      if (replay_enable) begin
+        rBuf <= replay_data;
+      end else begin
+        rBuf <= selected_data;
+      end
+    end
+  end
+
+  assign oInData = nCe ? '0 : rBuf;
+
+endmodule

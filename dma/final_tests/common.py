@@ -2,6 +2,7 @@
 """Shared runner for the six final MMIO/DMA report tests."""
 
 import argparse
+import hashlib
 import importlib
 import json
 import os
@@ -169,6 +170,11 @@ def save_summary(dma_dir, name, payload):
     print("汇报结果文件: %s" % path)
 
 
+def tensor_sha256(tensor):
+    array = np.ascontiguousarray(tensor.detach().cpu().numpy())
+    return hashlib.sha256(array.tobytes()).hexdigest()
+
+
 def single_image_main(transport):
     parser = argparse.ArgumentParser()
     parser.add_argument("--image", default=None)
@@ -187,6 +193,17 @@ def single_image_main(transport):
     input_batch = preprocess(Image.open(image_path).convert("RGB")).unsqueeze(0)
     print("预处理图像...")
     print("运行推理 (模式: 真实)...")
+    captured = {}
+    execute = model.apu_driver.execute_apu_network
+
+    def capture_apu_boundary(*args, **kwargs):
+        apu_input = kwargs.get("input_tensor_ps_01", args[0] if args else None)
+        result = execute(*args, **kwargs)
+        captured["input"] = apu_input.detach().cpu().to(torch.uint8).clone()
+        captured["output"] = result.detach().cpu().to(torch.uint8).clone()
+        return result
+
+    model.apu_driver.execute_apu_network = capture_apu_boundary
     try:
         with torch.no_grad():
             start = time.time()
@@ -198,10 +215,20 @@ def single_image_main(transport):
         print("预测类别索引: %d (类别: %s)" % (predicted, CLASSES[predicted]))
         transfer = metrics(model.apu_driver)
         print_transfer_result(transfer)
-        save_summary(dma_dir, "02_mmio_inference" if transport == "mmio" else "05_dma_inference", {
+        report_name = "02_mmio_inference" if transport == "mmio" else "05_dma_inference"
+        output_dir = os.path.join(dma_dir, "reports", "final")
+        os.makedirs(output_dir, exist_ok=True)
+        np.save(os.path.join(output_dir, report_name + "_apu_input.npy"), captured["input"].numpy())
+        np.save(os.path.join(output_dir, report_name + "_apu_output.npy"), captured["output"].numpy())
+        save_summary(dma_dir, report_name, {
+            "alignment": "apuYjb/image/cifar10_test_image.jpg + apuYjb/model_best.pth.tar + apuYjb/param",
+            "image": image_path,
+            "logsoftmax": [float(value) for value in output[0].detach().cpu()],
             "prediction": predicted,
             "class": CLASSES[predicted],
             "inference_ms": elapsed_ms,
+            "apu_input_sha256": tensor_sha256(captured["input"]),
+            "apu_output_sha256": tensor_sha256(captured["output"]),
             "transfer": transfer,
         })
     finally:
