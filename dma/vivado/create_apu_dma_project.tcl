@@ -12,10 +12,27 @@ set project_name apu_dma
 set design_name apu_dma_bd
 set part_name xc7z020clg400-1
 set board_name tul.com.tw:pynq-z2:part0:1.0
+
+# Single PL clock frequency knob for the whole DMA design.
+# Edit this value directly, or override it before sourcing this script:
+#   set ::env(APU_DMA_PL_FREQ_MHZ) 100
+set pl_freq_mhz 50.000000
+if {[info exists ::env(APU_DMA_PL_FREQ_MHZ)]} {
+    set pl_freq_mhz $::env(APU_DMA_PL_FREQ_MHZ)
+}
+if {![string is double -strict $pl_freq_mhz] || $pl_freq_mhz <= 0.0} {
+    error "APU_DMA_PL_FREQ_MHZ must be a positive MHz value, got: $pl_freq_mhz"
+}
+set pl_freq_mhz [format %.6f $pl_freq_mhz]
+set pl_freq_hz [expr {round($pl_freq_mhz * 1000000.0)}]
+
 set ip_repo_root [file normalize [file join $script_dir ip_repo]]
 if {[info exists ::env(APU_DMA_IP_REPO)]} {
     set ip_repo_root [file normalize $::env(APU_DMA_IP_REPO)]
 }
+
+puts "APU_DMA_PL_FREQ_MHZ=$pl_freq_mhz"
+puts "APU_DMA_PL_FREQ_HZ=$pl_freq_hz"
 
 create_project $project_name $project_dir -part $part_name -force
 if {[llength [get_board_parts -quiet $board_name]] == 0} {
@@ -43,8 +60,8 @@ set_property -dict [list \
     CONFIG.PCW_IRQ_F2P_INTR {1} \
     CONFIG.PCW_EN_CLK0_PORT {1} \
     CONFIG.PCW_EN_RST0_PORT {1} \
-    CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {25.000000} \
-] $ps7
+    CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ $pl_freq_mhz \
+    ] $ps7
 set_property CONFIG.PCW_M_AXI_GP0_FREQMHZ.VALUE_SRC PROPAGATED $ps7
 set_property CONFIG.PCW_S_AXI_HP0_FREQMHZ.VALUE_SRC PROPAGATED $ps7
 set_property CONFIG.PCW_S_AXI_HP1_FREQMHZ.VALUE_SRC PROPAGATED $ps7
@@ -72,7 +89,7 @@ set_property -dict [list \
     CONFIG.c_mm2s_burst_size {64} \
     CONFIG.c_s2mm_burst_size {64} \
     CONFIG.c_sg_length_width {26} \
-] $dma
+    ] $dma
 
 set fifo_in [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 axis_fifo_job]
 set_property -dict [list \
@@ -80,21 +97,21 @@ set_property -dict [list \
     CONFIG.FIFO_DEPTH {1024} \
     CONFIG.HAS_TKEEP {1} \
     CONFIG.HAS_TLAST {1} \
-] $fifo_in
+    ] $fifo_in
 set fifo_out [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 axis_fifo_result]
 set_property -dict [list \
     CONFIG.TDATA_NUM_BYTES {8} \
     CONFIG.FIFO_DEPTH {1024} \
     CONFIG.HAS_TKEEP {1} \
     CONFIG.HAS_TLAST {1} \
-] $fifo_out
+    ] $fifo_out
 
 set apu_dma [create_bd_cell -type ip -vlnv apu.local:user:apu_dma:1.0 apu_dma_0]
 
 set irq_concat [create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_irq]
 set_property -dict [list CONFIG.NUM_PORTS {3}] $irq_concat
 set irq_intc [create_bd_cell -type ip -vlnv xilinx.com:ip:axi_intc:4.1 axi_intc_0]
-set_property -dict [list CONFIG.C_NUM_INTR_INPUTS {3}] $irq_intc
+set_property -dict [list CONFIG.C_NUM_INTR_INPUTS {3} CONFIG.C_IRQ_CONNECTION {0}] $irq_intc
 catch {set_property CONFIG.C_KIND_OF_INTR {0x00000000} $irq_intc}
 catch {set_property CONFIG.C_KIND_OF_LVL {0xFFFFFFFF} $irq_intc}
 
@@ -135,6 +152,55 @@ connect_bd_net $fclk \
     [get_bd_pins $fifo_out/s_axis_aclk] \
     [get_bd_pins $apu_dma/aclk] \
     [get_bd_pins $rst/slowest_sync_clk]
+
+foreach clk_pin [list \
+    $fclk \
+    [get_bd_pins $ps7/M_AXI_GP0_ACLK] \
+    [get_bd_pins $ps7/S_AXI_HP0_ACLK] \
+    [get_bd_pins $ps7/S_AXI_HP1_ACLK] \
+    [get_bd_pins $ctrl_smc/aclk] \
+    [get_bd_pins $mm2s_smc/aclk] \
+    [get_bd_pins $s2mm_smc/aclk] \
+    [get_bd_pins $dma/s_axi_lite_aclk] \
+    [get_bd_pins $dma/m_axi_mm2s_aclk] \
+    [get_bd_pins $dma/m_axi_s2mm_aclk] \
+    [get_bd_pins $irq_intc/s_axi_aclk] \
+    [get_bd_pins $fifo_in/s_axis_aclk] \
+    [get_bd_pins $fifo_out/s_axis_aclk] \
+    [get_bd_pins $apu_dma/aclk] \
+    [get_bd_pins $rst/slowest_sync_clk] \
+    ] {
+        catch {set_property CONFIG.FREQ_HZ $pl_freq_hz $clk_pin}
+}
+
+foreach intf_pin [list \
+    [get_bd_intf_pins $ps7/M_AXI_GP0] \
+    [get_bd_intf_pins $ps7/S_AXI_HP0] \
+    [get_bd_intf_pins $ps7/S_AXI_HP1] \
+    [get_bd_intf_pins $ctrl_smc/S00_AXI] \
+    [get_bd_intf_pins $ctrl_smc/M00_AXI] \
+    [get_bd_intf_pins $ctrl_smc/M01_AXI] \
+    [get_bd_intf_pins $ctrl_smc/M02_AXI] \
+    [get_bd_intf_pins $dma/S_AXI_LITE] \
+    [get_bd_intf_pins $dma/M_AXI_MM2S] \
+    [get_bd_intf_pins $dma/M_AXI_S2MM] \
+    [get_bd_intf_pins $dma/M_AXIS_MM2S] \
+    [get_bd_intf_pins $dma/S_AXIS_S2MM] \
+    [get_bd_intf_pins $mm2s_smc/S00_AXI] \
+    [get_bd_intf_pins $mm2s_smc/M00_AXI] \
+    [get_bd_intf_pins $s2mm_smc/S00_AXI] \
+    [get_bd_intf_pins $s2mm_smc/M00_AXI] \
+    [get_bd_intf_pins $fifo_in/S_AXIS] \
+    [get_bd_intf_pins $fifo_in/M_AXIS] \
+    [get_bd_intf_pins $fifo_out/S_AXIS] \
+    [get_bd_intf_pins $fifo_out/M_AXIS] \
+    [get_bd_intf_pins $apu_dma/S_AXIS_JOB] \
+    [get_bd_intf_pins $apu_dma/M_AXIS_RESULT] \
+    [get_bd_intf_pins $apu_dma/S_AXI_CTRL] \
+    [get_bd_intf_pins $irq_intc/S_AXI] \
+    ] {
+        catch {set_property CONFIG.FREQ_HZ $pl_freq_hz $intf_pin}
+}
 
 connect_bd_net [get_bd_pins $ps7/FCLK_RESET0_N] [get_bd_pins $rst/ext_reset_in]
 set peripheral_resetn [get_bd_pins $rst/peripheral_aresetn]

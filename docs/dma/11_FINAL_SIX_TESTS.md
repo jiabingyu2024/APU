@@ -10,12 +10,12 @@ cd /home/xilinx/jupyter_notebooks/APUdma
 
 python3 dma/final_tests/01_mydesign_benchmark.py --warmup 1 --iterations 5
 python3 dma/final_tests/02_mydesign_inference.py
-python3 dma/final_tests/03_mydesign_evaluate.py --samples 10
+python3 dma/final_tests/03_mydesign_evaluate.py --samples 100
 
 python3 dma/final_tests/04_apu_dma_benchmark.py \
   --clock-mhz 25 --repeats 256 --warmup 1 --iterations 5
 python3 dma/final_tests/05_apu_dma_inference.py
-python3 dma/final_tests/06_apu_dma_evaluate.py --samples 10
+python3 dma/final_tests/06_apu_dma_evaluate.py --samples 100
 ```
 
 第 3、6 项默认和建议参数都是 10 张。脚本会同时打印 CIFAR-10 完整测试集数量和本次实际

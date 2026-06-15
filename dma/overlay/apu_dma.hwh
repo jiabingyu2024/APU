@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sun Jun 14 21:27:24 2026" VIVADOVERSION="2023.2">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Mon Jun 15 21:44:32 2026" VIVADOVERSION="2023.2">
 
   <SYSTEMINFO ARCH="zynq" BOARD="tul.com.tw:pynq-z2:part0:1.0" DEVICE="7z020" NAME="apu_dma_bd" PACKAGE="clg400" SPEEDGRADE="-1"/>
 
@@ -172,7 +172,7 @@
         <PARAMETER NAME="C_HIGHADDR" VALUE="0x43C0FFFF"/>
       </PARAMETERS>
       <PORTS>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -326,7 +326,7 @@
       <BUSINTERFACES>
         <BUSINTERFACE BUSNAME="axis_fifo_job_M_AXIS" NAME="S_AXIS_JOB" TYPE="TARGET" VLNV="xilinx.com:interface:axis:1.0">
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_TKEEP" VALUE="1"/>
           <PARAMETER NAME="HAS_TLAST" VALUE="1"/>
           <PARAMETER NAME="HAS_TREADY" VALUE="1"/>
@@ -348,7 +348,7 @@
         </BUSINTERFACE>
         <BUSINTERFACE BUSNAME="apu_dma_0_M_AXIS_RESULT" NAME="M_AXIS_RESULT" TYPE="INITIATOR" VLNV="xilinx.com:interface:axis:1.0">
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_TKEEP" VALUE="1"/>
           <PARAMETER NAME="HAS_TLAST" VALUE="1"/>
           <PARAMETER NAME="HAS_TREADY" VALUE="1"/>
@@ -375,7 +375,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="32"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="0"/>
@@ -1311,7 +1311,7 @@
             <CONNECTION INSTANCE="proc_sys_reset_0" PORT="peripheral_aresetn"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="m_axi_mm2s_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="m_axi_mm2s_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -1381,7 +1381,7 @@
             <CONNECTION INSTANCE="smartconnect_mm2s" PORT="S00_AXI_rvalid"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="m_axi_s2mm_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="m_axi_s2mm_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -1503,7 +1503,7 @@
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="s2mm_prmry_reset_out_n" POLARITY="ACTIVE_LOW" SIGIS="rst"/>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="s_axi_lite_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="s_axi_lite_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -1622,7 +1622,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="32"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="0"/>
@@ -1673,7 +1673,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="64"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="0"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="1"/>
@@ -1721,7 +1721,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="64"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="1"/>
@@ -1767,7 +1767,7 @@
         </BUSINTERFACE>
         <BUSINTERFACE BUSNAME="axi_dma_0_M_AXIS_MM2S" NAME="M_AXIS_MM2S" TYPE="INITIATOR" VLNV="xilinx.com:interface:axis:1.0">
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_TKEEP" VALUE="1"/>
           <PARAMETER NAME="HAS_TLAST" VALUE="1"/>
@@ -1790,7 +1790,7 @@
         </BUSINTERFACE>
         <BUSINTERFACE BUSNAME="axis_fifo_result_M_AXIS" NAME="S_AXIS_S2MM" TYPE="TARGET" VLNV="xilinx.com:interface:axis:1.0">
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_TKEEP" VALUE="1"/>
           <PARAMETER NAME="HAS_TLAST" VALUE="1"/>
           <PARAMETER NAME="HAS_TREADY" VALUE="1"/>
@@ -3348,7 +3348,7 @@
         <PARAMETER NAME="C_S_AXI_DATA_WIDTH" VALUE="32"/>
         <PARAMETER NAME="C_IRQ_CONNECTION" VALUE="0"/>
         <PARAMETER NAME="C_PROCESSOR_CLK_FREQ_MHZ" VALUE="100.0"/>
-        <PARAMETER NAME="C_S_AXI_ACLK_FREQ_MHZ" VALUE="25.0"/>
+        <PARAMETER NAME="C_S_AXI_ACLK_FREQ_MHZ" VALUE="50.0"/>
         <PARAMETER NAME="Component_Name" VALUE="apu_dma_bd_axi_intc_0_0"/>
         <PARAMETER NAME="Sense_of_IRQ_Edge_Type" VALUE="Rising"/>
         <PARAMETER NAME="Sense_of_IRQ_Level_Type" VALUE="Active_High"/>
@@ -3368,7 +3368,7 @@
             <CONNECTION INSTANCE="processing_system7_0" PORT="IRQ_F2P"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="s_axi_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="s_axi_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -3472,7 +3472,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="32"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="0"/>
@@ -3600,7 +3600,7 @@
             <CONNECTION INSTANCE="apu_dma_0" PORT="s_axis_job_tvalid"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="s_axis_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="s_axis_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -3639,7 +3639,7 @@
       <BUSINTERFACES>
         <BUSINTERFACE BUSNAME="axi_dma_0_M_AXIS_MM2S" NAME="S_AXIS" TYPE="TARGET" VLNV="xilinx.com:interface:axis:1.0">
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_TKEEP" VALUE="1"/>
           <PARAMETER NAME="HAS_TLAST" VALUE="1"/>
           <PARAMETER NAME="HAS_TREADY" VALUE="1"/>
@@ -3661,7 +3661,7 @@
         </BUSINTERFACE>
         <BUSINTERFACE BUSNAME="axis_fifo_job_M_AXIS" NAME="M_AXIS" TYPE="INITIATOR" VLNV="xilinx.com:interface:axis:1.0">
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_TKEEP" VALUE="1"/>
           <PARAMETER NAME="HAS_TLAST" VALUE="1"/>
           <PARAMETER NAME="HAS_TREADY" VALUE="1"/>
@@ -3757,7 +3757,7 @@
             <CONNECTION INSTANCE="axi_dma_0" PORT="s_axis_s2mm_tvalid"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="s_axis_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="s_axis_aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -3796,7 +3796,7 @@
       <BUSINTERFACES>
         <BUSINTERFACE BUSNAME="apu_dma_0_M_AXIS_RESULT" NAME="S_AXIS" TYPE="TARGET" VLNV="xilinx.com:interface:axis:1.0">
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_TKEEP" VALUE="1"/>
           <PARAMETER NAME="HAS_TLAST" VALUE="1"/>
           <PARAMETER NAME="HAS_TREADY" VALUE="1"/>
@@ -3818,7 +3818,7 @@
         </BUSINTERFACE>
         <BUSINTERFACE BUSNAME="axis_fifo_result_M_AXIS" NAME="M_AXIS" TYPE="INITIATOR" VLNV="xilinx.com:interface:axis:1.0">
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_TKEEP" VALUE="1"/>
           <PARAMETER NAME="HAS_TLAST" VALUE="1"/>
           <PARAMETER NAME="HAS_TREADY" VALUE="1"/>
@@ -3884,7 +3884,7 @@
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" LEFT="0" NAME="peripheral_reset" POLARITY="ACTIVE_HIGH" RIGHT="0" SIGIS="rst"/>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="slowest_sync_clk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="slowest_sync_clk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -3961,7 +3961,7 @@
         <PARAMETER NAME="PCW_ACT_DCI_PERIPHERAL_FREQMHZ" VALUE="10.096154"/>
         <PARAMETER NAME="PCW_ACT_ENET0_PERIPHERAL_FREQMHZ" VALUE="125.000000"/>
         <PARAMETER NAME="PCW_ACT_ENET1_PERIPHERAL_FREQMHZ" VALUE="10.000000"/>
-        <PARAMETER NAME="PCW_ACT_FPGA0_PERIPHERAL_FREQMHZ" VALUE="25.000000"/>
+        <PARAMETER NAME="PCW_ACT_FPGA0_PERIPHERAL_FREQMHZ" VALUE="50.000000"/>
         <PARAMETER NAME="PCW_ACT_FPGA1_PERIPHERAL_FREQMHZ" VALUE="10.000000"/>
         <PARAMETER NAME="PCW_ACT_FPGA2_PERIPHERAL_FREQMHZ" VALUE="10.000000"/>
         <PARAMETER NAME="PCW_ACT_FPGA3_PERIPHERAL_FREQMHZ" VALUE="10.000000"/>
@@ -4007,7 +4007,7 @@
         <PARAMETER NAME="PCW_CAN_PERIPHERAL_DIVISOR1" VALUE="1"/>
         <PARAMETER NAME="PCW_CAN_PERIPHERAL_FREQMHZ" VALUE="100"/>
         <PARAMETER NAME="PCW_CAN_PERIPHERAL_VALID" VALUE="0"/>
-        <PARAMETER NAME="PCW_CLK0_FREQ" VALUE="25000000"/>
+        <PARAMETER NAME="PCW_CLK0_FREQ" VALUE="50000000"/>
         <PARAMETER NAME="PCW_CLK1_FREQ" VALUE="10000000"/>
         <PARAMETER NAME="PCW_CLK2_FREQ" VALUE="10000000"/>
         <PARAMETER NAME="PCW_CLK3_FREQ" VALUE="10000000"/>
@@ -4144,8 +4144,8 @@
         <PARAMETER NAME="PCW_EN_USB1" VALUE="0"/>
         <PARAMETER NAME="PCW_EN_WDT" VALUE="0"/>
         <PARAMETER NAME="PCW_FCLK0_PERIPHERAL_CLKSRC" VALUE="IO PLL"/>
-        <PARAMETER NAME="PCW_FCLK0_PERIPHERAL_DIVISOR0" VALUE="8"/>
-        <PARAMETER NAME="PCW_FCLK0_PERIPHERAL_DIVISOR1" VALUE="5"/>
+        <PARAMETER NAME="PCW_FCLK0_PERIPHERAL_DIVISOR0" VALUE="5"/>
+        <PARAMETER NAME="PCW_FCLK0_PERIPHERAL_DIVISOR1" VALUE="4"/>
         <PARAMETER NAME="PCW_FCLK1_PERIPHERAL_CLKSRC" VALUE="IO PLL"/>
         <PARAMETER NAME="PCW_FCLK1_PERIPHERAL_DIVISOR0" VALUE="1"/>
         <PARAMETER NAME="PCW_FCLK1_PERIPHERAL_DIVISOR1" VALUE="1"/>
@@ -4159,7 +4159,7 @@
         <PARAMETER NAME="PCW_FCLK_CLK1_BUF" VALUE="FALSE"/>
         <PARAMETER NAME="PCW_FCLK_CLK2_BUF" VALUE="FALSE"/>
         <PARAMETER NAME="PCW_FCLK_CLK3_BUF" VALUE="FALSE"/>
-        <PARAMETER NAME="PCW_FPGA0_PERIPHERAL_FREQMHZ" VALUE="25.000000"/>
+        <PARAMETER NAME="PCW_FPGA0_PERIPHERAL_FREQMHZ" VALUE="50.000000"/>
         <PARAMETER NAME="PCW_FPGA1_PERIPHERAL_FREQMHZ" VALUE="50"/>
         <PARAMETER NAME="PCW_FPGA2_PERIPHERAL_FREQMHZ" VALUE="50"/>
         <PARAMETER NAME="PCW_FPGA3_PERIPHERAL_FREQMHZ" VALUE="50"/>
@@ -4436,7 +4436,7 @@
         <PARAMETER NAME="PCW_MIO_TREE_PERIPHERALS" VALUE="GPIO#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#GPIO#Quad SPI Flash#ENET Reset#GPIO#GPIO#GPIO#GPIO#UART 0#UART 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#SD 0#SD 0#SD 0#SD 0#SD 0#SD 0#USB Reset#SD 0#GPIO#GPIO#GPIO#GPIO#Enet 0#Enet 0"/>
         <PARAMETER NAME="PCW_MIO_TREE_SIGNALS" VALUE="gpio[0]#qspi0_ss_b#qspi0_io[0]#qspi0_io[1]#qspi0_io[2]#qspi0_io[3]/HOLD_B#qspi0_sclk#gpio[7]#qspi_fbclk#reset#gpio[10]#gpio[11]#gpio[12]#gpio[13]#rx#tx#tx_clk#txd[0]#txd[1]#txd[2]#txd[3]#tx_ctl#rx_clk#rxd[0]#rxd[1]#rxd[2]#rxd[3]#rx_ctl#data[4]#dir#stp#nxt#data[0]#data[1]#data[2]#data[3]#clk#data[5]#data[6]#data[7]#clk#cmd#data[0]#data[1]#data[2]#data[3]#reset#cd#gpio[48]#gpio[49]#gpio[50]#gpio[51]#mdc#mdio"/>
         <PARAMETER NAME="PCW_M_AXI_GP0_ENABLE_STATIC_REMAP" VALUE="0"/>
-        <PARAMETER NAME="PCW_M_AXI_GP0_FREQMHZ" VALUE="25"/>
+        <PARAMETER NAME="PCW_M_AXI_GP0_FREQMHZ" VALUE="50"/>
         <PARAMETER NAME="PCW_M_AXI_GP0_ID_WIDTH" VALUE="12"/>
         <PARAMETER NAME="PCW_M_AXI_GP0_SUPPORT_NARROW_BURST" VALUE="0"/>
         <PARAMETER NAME="PCW_M_AXI_GP0_THREAD_ID_WIDTH" VALUE="12"/>
@@ -4629,10 +4629,10 @@
         <PARAMETER NAME="PCW_S_AXI_GP1_FREQMHZ" VALUE="10"/>
         <PARAMETER NAME="PCW_S_AXI_GP1_ID_WIDTH" VALUE="6"/>
         <PARAMETER NAME="PCW_S_AXI_HP0_DATA_WIDTH" VALUE="64"/>
-        <PARAMETER NAME="PCW_S_AXI_HP0_FREQMHZ" VALUE="25"/>
+        <PARAMETER NAME="PCW_S_AXI_HP0_FREQMHZ" VALUE="50"/>
         <PARAMETER NAME="PCW_S_AXI_HP0_ID_WIDTH" VALUE="6"/>
         <PARAMETER NAME="PCW_S_AXI_HP1_DATA_WIDTH" VALUE="64"/>
-        <PARAMETER NAME="PCW_S_AXI_HP1_FREQMHZ" VALUE="25"/>
+        <PARAMETER NAME="PCW_S_AXI_HP1_FREQMHZ" VALUE="50"/>
         <PARAMETER NAME="PCW_S_AXI_HP1_ID_WIDTH" VALUE="6"/>
         <PARAMETER NAME="PCW_S_AXI_HP2_DATA_WIDTH" VALUE="64"/>
         <PARAMETER NAME="PCW_S_AXI_HP2_FREQMHZ" VALUE="10"/>
@@ -4921,7 +4921,7 @@
             <CONNECTION INSTANCE="apu_dma_bd_imp" PORT="DDR_we_n"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="O" NAME="FCLK_CLK0" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="O" NAME="FCLK_CLK0" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="M_AXI_GP0_ACLK"/>
             <CONNECTION INSTANCE="processing_system7_0" PORT="S_AXI_HP0_ACLK"/>
@@ -4954,7 +4954,7 @@
             <CONNECTION INSTANCE="apu_dma_bd_imp" PORT="FIXED_IO_mio"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="M_AXI_GP0_ACLK" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="M_AXI_GP0_ACLK" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -5164,7 +5164,7 @@
             <CONNECTION INSTANCE="apu_dma_bd_imp" PORT="FIXED_IO_ps_srstb"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="S_AXI_HP0_ACLK" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="S_AXI_HP0_ACLK" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -5250,7 +5250,7 @@
         <PORT DIR="O" LEFT="5" NAME="S_AXI_HP0_WACOUNT" RIGHT="0" SIGIS="undef"/>
         <PORT DIR="O" LEFT="7" NAME="S_AXI_HP0_WCOUNT" RIGHT="0" SIGIS="undef"/>
         <PORT DIR="I" NAME="S_AXI_HP0_WRISSUECAP1_EN" SIGIS="undef"/>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="S_AXI_HP1_ACLK" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="S_AXI_HP1_ACLK" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -5434,7 +5434,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="32"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="1"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="1"/>
@@ -5507,7 +5507,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="64"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="1"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="1"/>
@@ -5557,7 +5557,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="64"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="1"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="1"/>
@@ -6071,7 +6071,7 @@
             <CONNECTION INSTANCE="processing_system7_0" PORT="M_AXI_GP0_WVALID"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -6090,7 +6090,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="32"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="1"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="1"/>
@@ -6163,7 +6163,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="32"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="0"/>
@@ -6214,7 +6214,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="32"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="0"/>
@@ -6266,7 +6266,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="32"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="0"/>
@@ -6469,7 +6469,7 @@
             <CONNECTION INSTANCE="axi_dma_0" PORT="m_axi_mm2s_rvalid"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -6488,7 +6488,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="64"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="0"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="1"/>
@@ -6536,7 +6536,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="64"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="0"/>
           <PARAMETER NAME="HAS_BURST" VALUE="1"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="1"/>
@@ -6767,7 +6767,7 @@
             <CONNECTION INSTANCE="axi_dma_0" PORT="m_axi_s2mm_wvalid"/>
           </CONNECTIONS>
         </PORT>
-        <PORT CLKFREQUENCY="25000000" DIR="I" NAME="aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
+        <PORT CLKFREQUENCY="50000000" DIR="I" NAME="aclk" SIGIS="clk" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="processing_system7_0" PORT="FCLK_CLK0"/>
           </CONNECTIONS>
@@ -6786,7 +6786,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="64"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="0"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="1"/>
@@ -6837,7 +6837,7 @@
           <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
           <PARAMETER NAME="CLK_DOMAIN" VALUE="apu_dma_bd_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="DATA_WIDTH" VALUE="64"/>
-          <PARAMETER NAME="FREQ_HZ" VALUE="25000000"/>
+          <PARAMETER NAME="FREQ_HZ" VALUE="50000000"/>
           <PARAMETER NAME="HAS_BRESP" VALUE="1"/>
           <PARAMETER NAME="HAS_BURST" VALUE="1"/>
           <PARAMETER NAME="HAS_CACHE" VALUE="1"/>

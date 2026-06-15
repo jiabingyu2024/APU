@@ -6,11 +6,23 @@ set build_dir [file normalize [file join $script_dir work ip_pack]]
 if {[info exists ::env(APU_DMA_IP_BUILD_DIR)]} {
     set build_dir [file normalize $::env(APU_DMA_IP_BUILD_DIR)]
 }
+set pl_freq_mhz 25.000000
+if {[info exists ::env(APU_DMA_PL_FREQ_MHZ)]} {
+    set pl_freq_mhz $::env(APU_DMA_PL_FREQ_MHZ)
+}
+if {![string is double -strict $pl_freq_mhz] || $pl_freq_mhz <= 0.0} {
+    error "APU_DMA_PL_FREQ_MHZ must be a positive MHz value, got: $pl_freq_mhz"
+}
+set pl_freq_mhz [format %.6f $pl_freq_mhz]
+set pl_freq_hz [expr {round($pl_freq_mhz * 1000000.0)}]
 set ip_repo_root [file normalize [file join $script_dir ip_repo]]
 if {[info exists ::env(APU_DMA_IP_REPO)]} {
     set ip_repo_root [file normalize $::env(APU_DMA_IP_REPO)]
 }
 set ip_root [file join $ip_repo_root APU_DMA]
+
+puts "APU_DMA_PL_FREQ_MHZ=$pl_freq_mhz"
+puts "APU_DMA_PL_FREQ_HZ=$pl_freq_hz"
 
 set dma_rtl [list \
     [file join $repo_root dma rtl apu_dma_pkg.sv] \
@@ -70,6 +82,18 @@ set_property core_revision 1 $core
 
 foreach busif {S_AXIS_JOB M_AXIS_RESULT S_AXI_CTRL} {
     ipx::associate_bus_interfaces -busif $busif -clock aclk $core
+}
+set aclk_busif [ipx::get_bus_interfaces ACLK -of_objects $core]
+if {[llength $aclk_busif] != 1} {
+    error "Unable to identify ACLK bus interface in packaged APU DMA IP"
+}
+set aclk_freq_param [ipx::get_bus_parameters FREQ_HZ -of_objects $aclk_busif]
+if {[llength $aclk_freq_param] == 1} {
+    set_property value $pl_freq_hz $aclk_freq_param
+} else {
+    set aclk_freq_param [ipx::add_bus_parameter FREQ_HZ $aclk_busif]
+    set_property value $pl_freq_hz $aclk_freq_param
+    set_property value_format long $aclk_freq_param
 }
 ipx::create_xgui_files $core
 ipx::update_checksums $core

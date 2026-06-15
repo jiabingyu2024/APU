@@ -26,6 +26,7 @@ cd {E:/Resources/01_lessons/class2_NS/APU/finalTest/prj/APU}
 cd {E:/Resources/01_lessons/class2_NS/APU/finalTest/prj/APU}
 
 set ::env(APU_DMA_IP_BUILD_DIR) {E:/apu_dma_ip_pack}
+set ::env(APU_DMA_PL_FREQ_MHZ) 50
 source dma/vivado/package_apu_dma_ip.tcl
 
 set ::env(APU_DMA_PROJECT_DIR) {E:/apu_dma_bd}
@@ -68,6 +69,27 @@ apu_dma_0  : 0x43C00000
 
 当前 bring-up bit 使用 25 MHz 单时钟。25 MHz 版本用于功能和稳定性验证；
 要通过 `wall_mbps_mean >= 200`，需要重新生成更高频率版本，建议先做 100 MHz。
+
+### 3.1 频率参数
+
+`dma/vivado/package_apu_dma_ip.tcl` 和 `dma/vivado/create_apu_dma_project.tcl`
+共用单一参数控制自定义 IP 元数据、PS FCLK0 和整条 BD 时钟：
+
+```tcl
+set pl_freq_mhz 25.000000
+```
+
+你可以直接改这个值，或者在 source 前覆盖：
+
+```tcl
+set ::env(APU_DMA_PL_FREQ_MHZ) 100
+source dma/vivado/package_apu_dma_ip.tcl
+source dma/vivado/create_apu_dma_project.tcl
+```
+
+这个值必须在打包 IP 前设置，否则 `apu.local:user:apu_dma:1.0` 的
+`component.xml` 仍可能保留旧的 `FREQ_HZ`，导致 `validate_bd_design` 报频率不匹配。
+后续在板上跑脚本时，`--clock-mhz` 也要填同一个数。
 
 ## 4. 生成 bitstream
 
