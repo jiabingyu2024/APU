@@ -70,7 +70,6 @@ module tb_inbuf_replay;
     iSelect = 1'b0;
     iWriteDataA = 64'h0101_0101_0101_0101;
     step();
-    step();
     iWriteDataA = 64'h0202_0202_0202_0202;
     step();
     iSelect = 1'b1;

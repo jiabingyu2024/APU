@@ -94,17 +94,18 @@ module InBuf #(
           main_select <= iSelect;
         end
 
-        // FeatureProcessor has a registered read output. The shortcut request
-        // occurs at 18 (layer2) or 36/37 (layer3), so capture one cycle later.
+        // Capture the first output group's shortcut words before later output
+        // groups can overwrite the shortcut SRAM locations. Keep the cycle
+        // points aligned with Ctrl's residual schedule.
         if (layer2_mode) begin
           if (count == 8'd19) begin
             replay_word0 <= shortcut_data;
           end
         end else begin
-          if (count == 8'd37) begin
+          if (count == 8'd36) begin
             replay_word0 <= shortcut_data;
           end
-          if (count == 8'd38) begin
+          if (count == 8'd37) begin
             replay_word1 <= shortcut_data;
           end
         end
