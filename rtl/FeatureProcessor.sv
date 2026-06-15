@@ -24,9 +24,11 @@ module FeatureProcessor #(
 
   logic [31:0] countConvCycles;
   logic [31:0] countDepthCycles;
+  logic [31:0] depthLimit;
 
   logic [P_ADDR_WIDTH-1:0] readAddr;
   logic [P_ADDR_WIDTH-1:0] safeReadAddr;
+  logic [P_ADDR_WIDTH-1:0] depthAddr;
   logic [P_ADDR_WIDTH-1:0] rowOffset;
   logic [P_ADDR_WIDTH-1:0] colOffset;
   logic [P_ADDR_WIDTH-1:0] centerPixel;
@@ -42,8 +44,6 @@ module FeatureProcessor #(
   logic                    isRight;
   logic                    zeroMaskReg;
   logic                    rKernelSize;
-
-  integer i;
 
   always_ff @(posedge clk) begin
     if (!nWe) begin
@@ -102,7 +102,7 @@ module FeatureProcessor #(
     end else if (nCe) begin
       countConvCycles  <= 32'd0;
       countDepthCycles <= 32'd0;
-    end else if (iDepth <= 4'd1 || countDepthCycles == iDepth - 1'b1) begin
+    end else if (iDepth <= 4'd1 || countDepthCycles == depthLimit) begin
       countDepthCycles <= 32'd0;
       if (iKernelSize == 2'd3 && countConvCycles != 32'd8) begin
         countConvCycles <= countConvCycles + 1'b1;
@@ -124,8 +124,14 @@ module FeatureProcessor #(
 
 
   always_comb begin
-    rowOffset   = P_ADDR_WIDTH'(inHW) * P_ADDR_WIDTH'(iDepth);
-    colOffset   = P_ADDR_WIDTH'(iDepth);
+    depthLimit = {28'd0, iDepth} - 32'd1;
+    depthAddr = P_ADDR_WIDTH'(countDepthCycles);
+    colOffset = P_ADDR_WIDTH'(iDepth);
+    case (iDepth)
+      4'd4:    rowOffset = P_ADDR_WIDTH'(inHW) << 2;
+      4'd2:    rowOffset = P_ADDR_WIDTH'(inHW) << 1;
+      default: rowOffset = P_ADDR_WIDTH'(inHW);
+    endcase
     validShape  = (inHW != 6'd0) && (iDepth != 4'd0);
 
     centerPixel = '0;
@@ -133,10 +139,29 @@ module FeatureProcessor #(
     centerCol   = '0;
     lastCoord   = '0;
     if (validShape) begin
-      centerPixel = iReadCenterAddr / colOffset;
-      centerRow   = centerPixel / P_ADDR_WIDTH'(inHW);
-      centerCol   = centerPixel % P_ADDR_WIDTH'(inHW);
-      lastCoord   = P_ADDR_WIDTH'(inHW) - 1'b1;
+      case (iDepth)
+        4'd4:    centerPixel = iReadCenterAddr >> 2;
+        4'd2:    centerPixel = iReadCenterAddr >> 1;
+        default: centerPixel = iReadCenterAddr;
+      endcase
+
+      case (inHW)
+        6'd8: begin
+          centerRow = centerPixel >> 3;
+          centerCol = {{(P_ADDR_WIDTH-3){1'b0}}, centerPixel[2:0]};
+          lastCoord = P_ADDR_WIDTH'(6'd7);
+        end
+        6'd16: begin
+          centerRow = centerPixel >> 4;
+          centerCol = {{(P_ADDR_WIDTH-4){1'b0}}, centerPixel[3:0]};
+          lastCoord = P_ADDR_WIDTH'(6'd15);
+        end
+        default: begin
+          centerRow = centerPixel >> 5;
+          centerCol = {{(P_ADDR_WIDTH-5){1'b0}}, centerPixel[4:0]};
+          lastCoord = P_ADDR_WIDTH'(6'd31);
+        end
+      endcase
     end
 
     kernel3x3 = (iKernelSize == 2'd3);
@@ -161,19 +186,19 @@ module FeatureProcessor #(
       endcase
     end
 
-    readAddr = iReadCenterAddr + countDepthCycles;
+    readAddr = iReadCenterAddr + depthAddr;
     if (kernel3x3) begin
       case (countConvCycles)
-        32'd0: readAddr = iReadCenterAddr + countDepthCycles - rowOffset - colOffset;
-        32'd1: readAddr = iReadCenterAddr + countDepthCycles - rowOffset;
-        32'd2: readAddr = iReadCenterAddr + countDepthCycles - rowOffset + colOffset;
-        32'd3: readAddr = iReadCenterAddr + countDepthCycles - colOffset;
-        32'd4: readAddr = iReadCenterAddr + countDepthCycles;
-        32'd5: readAddr = iReadCenterAddr + countDepthCycles + colOffset;
-        32'd6: readAddr = iReadCenterAddr + countDepthCycles + rowOffset - colOffset;
-        32'd7: readAddr = iReadCenterAddr + countDepthCycles + rowOffset;
-        32'd8: readAddr = iReadCenterAddr + countDepthCycles + rowOffset + colOffset;
-        default: readAddr = iReadCenterAddr + countDepthCycles;
+        32'd0: readAddr = iReadCenterAddr + depthAddr - rowOffset - colOffset;
+        32'd1: readAddr = iReadCenterAddr + depthAddr - rowOffset;
+        32'd2: readAddr = iReadCenterAddr + depthAddr - rowOffset + colOffset;
+        32'd3: readAddr = iReadCenterAddr + depthAddr - colOffset;
+        32'd4: readAddr = iReadCenterAddr + depthAddr;
+        32'd5: readAddr = iReadCenterAddr + depthAddr + colOffset;
+        32'd6: readAddr = iReadCenterAddr + depthAddr + rowOffset - colOffset;
+        32'd7: readAddr = iReadCenterAddr + depthAddr + rowOffset;
+        32'd8: readAddr = iReadCenterAddr + depthAddr + rowOffset + colOffset;
+        default: readAddr = iReadCenterAddr + depthAddr;
       endcase
     end
 

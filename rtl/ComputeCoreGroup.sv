@@ -32,6 +32,14 @@ module ComputeCoreGroup #(
 );
 
   logic [P_GROUP-1:0][P_BITWIDTH_WE-1:0] coreWeightData;
+  logic [P_GROUP-1:0]                    weightBankWriteEn;
+
+  always_comb begin
+    weightBankWriteEn = '0;
+    if (!nWeightWe) begin
+      weightBankWriteEn[weightWriteSelect] = 1'b1;
+    end
+  end
 
   genvar i;
   generate
@@ -56,7 +64,7 @@ module ComputeCoreGroup #(
         .weightReadAddr(weightReadAddr),
         .weightWriteAddr(weightWriteAddr),
         .nWeightCe(nWeightCe),
-        .nWeightWe(nWeightWe | (weightWriteSelect != i[P_GROUP_LOG2-1:0])),
+        .nWeightWe(!weightBankWriteEn[i]),
         .enableBuf(enableBuf),
         .actData(actData),
         .accInst(accInst),
