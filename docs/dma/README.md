@@ -15,6 +15,7 @@
 8. [性能验收口径](08_PERFORMANCE_ACCEPTANCE.md)
 9. [完整网络 DMA Job](09_FULL_NETWORK_DMA_JOB.md)
 10. [板上运行结果汇总](10_BOARD_RUN_SUMMARY.md)
+11. [六个最终汇报测试](11_FINAL_SIX_TESTS.md)
 
 已删除的独立 loopback 路线不再作为当前交付项；如果以后需要恢复纯 DMA loopback，
 应重新生成对应 bit/hwh 后再单独建文档。

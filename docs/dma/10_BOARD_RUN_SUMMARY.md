@@ -128,3 +128,15 @@ SHA256 597925900453597BE79ACFD59C9F56E35CDD8E45A845583C3839320B142A3799
 ```bash
 python3 dma/benchmark/benchmark_mmio.py --warmup 1 --iterations 5
 ```
+
+旧 MMIO 完整推理已在 2026-06-15 完成 10 样本短测：
+
+```text
+latency_ms_mean: 2517.25
+cpu_percent_mean: 100.63
+top1_percent: 10.0
+top5_percent: 100.0
+```
+
+同一第 0 样本两次运行的 raw SHA 不一致，因此旧 MMIO 路径当前也未达到可作为 golden 的
+重复稳定性。

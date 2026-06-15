@@ -22,6 +22,7 @@ dma/
 
 实际操作见：
 
+- `dma/final_tests/README.md`（六个最终汇报入口）
 - `docs/dma/06_VIVADO_GUI_BUILD_AND_EXPORT.md`
 - `docs/dma/07_PYNQ_BRINGUP_AND_TEST.md`
 - `docs/dma/10_BOARD_RUN_SUMMARY.md`

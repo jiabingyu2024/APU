@@ -2,21 +2,22 @@
 
 ## 当前结论
 
-截至 2026-06-14，真实 APU DMA overlay 已能在 PYNQ-Z2 上运行：
+截至 2026-06-15，真实 APU DMA overlay 已能在 PYNQ-Z2 上运行：
 
 - `dma/overlay/apu_dma.bit` 与 `dma/overlay/apu_dma.hwh` 已上传到板上；
 - HWH 已正确解析出 `axi_intc_0`，DMA 两路中断均可由 PYNQ 创建 interrupt 对象；
 - ACT RAM smoke test 使用 interrupt wait 通过；
 - 真实 loader DMA benchmark 可运行并生成 CSV/JSON；
 - 完整网络 aggregate DMA job 可以执行并返回 256x8x8 输出；
-- 旧 AXI-Lite/AHB MMIO 基线脚本 `benchmark_mmio.py` 已同步到板上，但完整默认测量被中断，尚未取得最终 JSON。
+- 旧 AXI-Lite/AHB MMIO 完整推理短基线已完成 10 个样本，并生成 CSV/JSON；
+- 旧 MMIO 同一第 0 样本的 raw SHA 在两次运行中不同，旧路径本身也需要继续排查稳定性。
 
 当前尚未验收通过：
 
 - `wall_mbps_mean >= 200`：25 MHz 版本实测约 159 MB/s；
 - `cpu_percent_mean < 10`：25 MHz 版本 `repeats=256` 实测约 14%；
 - 完整网络 bit-exact 稳定性：同一零输入重复运行输出 SHA 不一致；
-- 旧 MMIO 基线完整报告：需要重新跑较短或完整参数。
+- 旧 MMIO 传输 benchmark 的最终报告仍需补跑；完整推理已有 10 样本短基线。
 
 ## 当前板上实测结果
 
@@ -79,7 +80,7 @@ DMA/APU irq -> xlconcat -> axi_intc_0 -> PS IRQ_F2P
 
 ## 下一步
 
-1. 重新跑旧 MMIO 基线，建议先用较短参数：
+1. 补跑旧 MMIO 传输基线：
 
 ```bash
 python3 dma/benchmark/benchmark_mmio.py --warmup 1 --iterations 5

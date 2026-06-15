@@ -16,7 +16,11 @@ SHA256 597925900453597BE79ACFD59C9F56E35CDD8E45A845583C3839320B142A3799
 ```
 
 `dma/benchmark/benchmark_mmio.py` 已上传到板上。默认长测曾被中断，因此当前还没有可信的
-`dma/reports/raw/mmio_transfer_summary.json`。先跑短测，确认旧路径可用后再扩大迭代数。
+`dma/reports/raw/mmio_transfer_summary.json`。完整推理短基线已于 2026-06-15 跑通 10 个样本。
+
+板上的 CIFAR-10 是平铺布局，即 `test_batch` 直接位于 `apuYjb/CIFAR10/`。脚本现已同时
+兼容平铺布局和 torchvision 的 `cifar-10-batches-py/` 标准布局，也可用
+`--dataset-root` 显式指定其他位置。
 
 ## 2. 相关文件
 
@@ -89,6 +93,22 @@ dma/reports/raw/mmio_debug/sample_00000_*.txt
 
 DMA 完整网络版本最终必须和旧 MMIO 基线对齐同一样本的 raw APU 输出哈希；当前 DMA
 完整网络重复运行还不稳定，不能作为 bit-exact 通过证据。
+
+2026-06-15 板上短基线：
+
+```text
+samples: 10
+warmup: 1
+latency_ms_mean: 2517.25
+cpu_percent_mean: 100.63
+top1_percent: 10.0
+top5_percent: 100.0
+first_apu_raw_sha256: b44cbfdcf617d5cda09e23cf761f337f8a72e1bbcbe78a4072d20e7ea8d6b18c
+```
+
+此前单样本运行得到的同一第 0 样本 SHA 为
+`f96994fc49697fe872a9bef5f3c5c3c14657342acd02ddfed2e21f329badbfe5`。两次不一致，说明旧
+MMIO 完整推理自身也存在重复输出不稳定，当前不能将任一 hash 当作 golden。
 
 ## 5. 通过条件
 

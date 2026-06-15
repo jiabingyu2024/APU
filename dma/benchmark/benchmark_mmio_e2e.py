@@ -15,6 +15,30 @@ import torchvision
 import torchvision.transforms as transforms
 
 
+class FlatCIFAR10(torchvision.datasets.CIFAR10):
+    """CIFAR-10 extracted with batch files directly under the given root."""
+
+    base_folder = ""
+
+
+def load_cifar10(root, transform):
+    root = os.path.abspath(root)
+    standard_dir = os.path.join(root, torchvision.datasets.CIFAR10.base_folder)
+    if os.path.isfile(os.path.join(standard_dir, "test_batch")):
+        return torchvision.datasets.CIFAR10(
+            root=root, train=False, download=False, transform=transform
+        )
+    if os.path.isfile(os.path.join(root, "test_batch")):
+        return FlatCIFAR10(
+            root=root, train=False, download=False, transform=transform
+        )
+    raise SystemExit(
+        "CIFAR-10 test set not found. Expected either %s or %s. "
+        "Pass --dataset-root if the dataset is stored elsewhere."
+        % (os.path.join(standard_dir, "test_batch"), os.path.join(root, "test_batch"))
+    )
+
+
 def sha256_file(path):
     digest = hashlib.sha256()
     with open(path, "rb") as stream:
@@ -31,6 +55,11 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--apu-dir", default=default_apu_dir)
+    parser.add_argument(
+        "--dataset-root",
+        default=None,
+        help="CIFAR-10 root; supports standard cifar-10-batches-py or flat layout",
+    )
     parser.add_argument("--samples", type=int, default=10)
     parser.add_argument("--start-index", type=int, default=0)
     parser.add_argument("--warmup", type=int, default=1)
@@ -56,12 +85,8 @@ def main():
             ),
         ]
     )
-    dataset = torchvision.datasets.CIFAR10(
-        root=os.path.join(apu_dir, "CIFAR10"),
-        train=False,
-        download=False,
-        transform=transform,
-    )
+    dataset_root = args.dataset_root or os.path.join(apu_dir, "CIFAR10")
+    dataset = load_cifar10(dataset_root, transform)
     if args.start_index < 0 or args.start_index + args.samples > len(dataset):
         raise SystemExit("Requested sample range is outside the CIFAR-10 test set")
 
