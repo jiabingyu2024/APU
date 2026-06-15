@@ -2,6 +2,7 @@
 """Zero-copy PYNQ driver for the APU DMA overlay."""
 
 import asyncio
+import time
 from dataclasses import dataclass
 
 import numpy as np
@@ -65,9 +66,10 @@ class DmaResponse:
     buffer: object
     used_bytes: int
     packets: list
+    owned: bool = True
 
     def close(self):
-        if self.buffer is not None:
+        if self.buffer is not None and self.owned:
             self.buffer.freebuffer()
             self.buffer = None
 
@@ -96,6 +98,7 @@ class ApuDmaOverlay:
             and getattr(self.dma.recvchannel, "_interrupt", None) is not None
         )
         self.wait_mode = "interrupt" if self.interrupt_mode else "polling"
+        self.last_transfer_profile = None
         if require_interrupts and not self.interrupt_mode:
             raise RuntimeError(
                 "DMA interrupts are unavailable. Functional tests can run with "
@@ -154,7 +157,13 @@ class ApuDmaOverlay:
             "irq_status": self.ctrl.read(REG_IRQ_STATUS) & 0x3,
         }
 
-    async def execute_async(self, tx_buffer, used_bytes, expected_response_bytes):
+    async def execute_async(
+        self,
+        tx_buffer,
+        used_bytes,
+        expected_response_bytes,
+        rx_buffer=None,
+    ):
         tx_view = np.asarray(tx_buffer)
         if tx_view.dtype != np.uint64 or tx_view.ndim != 1:
             raise TypeError("tx_buffer must be a one-dimensional uint64 CMA buffer")
@@ -165,14 +174,47 @@ class ApuDmaOverlay:
         if expected_response_bytes < 32 or expected_response_bytes % 8:
             raise ValueError("expected_response_bytes must be aligned and at least 32")
 
-        rx_buffer = allocate(
-            shape=(expected_response_bytes // 8,), dtype=np.uint64
-        )
+        owned_rx_buffer = rx_buffer is None
+        profile = {}
+        if rx_buffer is None:
+            wall_alloc = time.perf_counter()
+            cpu_alloc = time.process_time()
+            rx_buffer = allocate(
+                shape=(expected_response_bytes // 8,), dtype=np.uint64
+            )
+            profile["rx_allocate_wall_seconds"] = time.perf_counter() - wall_alloc
+            profile["rx_allocate_cpu_seconds"] = time.process_time() - cpu_alloc
+        else:
+            rx_view = np.asarray(rx_buffer)
+            if rx_view.dtype != np.uint64 or rx_view.ndim != 1:
+                raise TypeError("rx_buffer must be a one-dimensional uint64 CMA buffer")
+            if not hasattr(rx_buffer, "physical_address"):
+                raise TypeError("rx_buffer must come from pynq.allocate")
+            if rx_view.nbytes < expected_response_bytes:
+                raise ValueError("rx_buffer is smaller than expected_response_bytes")
+            profile["rx_allocate_wall_seconds"] = 0.0
+            profile["rx_allocate_cpu_seconds"] = 0.0
         try:
+            wall_zero = time.perf_counter()
+            cpu_zero = time.process_time()
             rx_buffer[:] = 0
-            tx_buffer.flush()
-            rx_buffer.flush()
+            profile["rx_zero_wall_seconds"] = time.perf_counter() - wall_zero
+            profile["rx_zero_cpu_seconds"] = time.process_time() - cpu_zero
 
+            wall_t0 = time.perf_counter()
+            cpu_t0 = time.process_time()
+            tx_buffer.flush()
+            profile["tx_flush_wall_seconds"] = time.perf_counter() - wall_t0
+            profile["tx_flush_cpu_seconds"] = time.process_time() - cpu_t0
+
+            wall_t1 = time.perf_counter()
+            cpu_t1 = time.process_time()
+            rx_buffer.flush()
+            profile["rx_flush_wall_seconds"] = time.perf_counter() - wall_t1
+            profile["rx_flush_cpu_seconds"] = time.process_time() - cpu_t1
+
+            wall_t2 = time.perf_counter()
+            cpu_t2 = time.process_time()
             self.dma.recvchannel.transfer(
                 rx_buffer, nbytes=expected_response_bytes
             )
@@ -185,26 +227,36 @@ class ApuDmaOverlay:
             else:
                 self.dma.sendchannel.wait()
                 self.dma.recvchannel.wait()
+            profile["dma_wait_wall_seconds"] = time.perf_counter() - wall_t2
+            profile["dma_wait_cpu_seconds"] = time.process_time() - cpu_t2
 
+            wall_t3 = time.perf_counter()
+            cpu_t3 = time.process_time()
             rx_buffer.invalidate()
             response_bytes = find_response_used_bytes(
                 rx_buffer, limit_bytes=expected_response_bytes
             )
             packets = list(iter_response_packets(rx_buffer, response_bytes))
+            profile["invalidate_parse_wall_seconds"] = time.perf_counter() - wall_t3
+            profile["invalidate_parse_cpu_seconds"] = time.process_time() - cpu_t3
             terminal = packets[-1][0]
             if terminal.opcode == ResponseType.ERROR or terminal.flags != Status.OK:
                 raise ApuDmaError(
                     terminal.flags, terminal.sequence_id, terminal.command_id
                 )
-            return DmaResponse(rx_buffer, response_bytes, packets)
+            self.last_transfer_profile = profile
+            return DmaResponse(rx_buffer, response_bytes, packets, owned=owned_rx_buffer)
         except Exception:
-            rx_buffer.freebuffer()
+            if owned_rx_buffer:
+                rx_buffer.freebuffer()
             raise
 
-    def execute(self, tx_buffer, used_bytes, expected_response_bytes):
+    def execute(self, tx_buffer, used_bytes, expected_response_bytes, rx_buffer=None):
         if not self.interrupt_mode:
             return asyncio.run(
-                self.execute_async(tx_buffer, used_bytes, expected_response_bytes)
+                self.execute_async(
+                    tx_buffer, used_bytes, expected_response_bytes, rx_buffer=rx_buffer
+                )
             )
         try:
             self._event_loop = asyncio.get_event_loop()
@@ -215,5 +267,7 @@ class ApuDmaOverlay:
             self._event_loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._event_loop)
         return self._event_loop.run_until_complete(
-            self.execute_async(tx_buffer, used_bytes, expected_response_bytes)
+            self.execute_async(
+                tx_buffer, used_bytes, expected_response_bytes, rx_buffer=rx_buffer
+            )
         )

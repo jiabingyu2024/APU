@@ -55,19 +55,23 @@ def main():
             "acceptance requires PYNQ DMA interrupts."
         )
     tx = driver.allocate_job_buffer(capacity)
+    rx = None
     try:
         builder = JobBuilder(tx, sequence_id=1)
         for _ in range(args.repeats):
             for bank in range(64):
                 builder.load_u64(Target.WEIGHT, address=0, payload=payload, bank=bank)
         used_bytes = builder.end()
+        rx = driver.allocate_job_buffer(builder.expected_response_bytes)
 
         records = []
         for iteration in range(args.warmup + args.iterations):
             driver.clear_counters()
             wall_start = time.perf_counter()
             cpu_start = time.process_time()
-            with driver.execute(tx, used_bytes, builder.expected_response_bytes):
+            with driver.execute(
+                tx, used_bytes, builder.expected_response_bytes, rx_buffer=rx
+            ):
                 pass
             cpu_seconds = time.process_time() - cpu_start
             wall_seconds = time.perf_counter() - wall_start
@@ -75,24 +79,25 @@ def main():
 
             if iteration >= args.warmup:
                 hardware_seconds = status["busy_cycles"] / (args.clock_mhz * 1_000_000.0)
-                records.append(
-                    {
-                        "iteration": iteration - args.warmup,
-                        "job_bytes": used_bytes,
-                        "wall_seconds": wall_seconds,
-                        "cpu_seconds": cpu_seconds,
-                        "cpu_percent": 100.0 * cpu_seconds / wall_seconds,
-                        "wall_mb_per_second": used_bytes / wall_seconds / 1e6,
-                        "hardware_busy_cycles": status["busy_cycles"],
-                        "hardware_mb_per_second": (
-                            used_bytes / hardware_seconds / 1e6
-                            if hardware_seconds > 0
-                            else 0.0
-                        ),
-                        "mm2s_stall_cycles": status["mm2s_stall_cycles"],
-                        "s2mm_stall_cycles": status["s2mm_stall_cycles"],
-                    }
-                )
+                record = {
+                    "iteration": iteration - args.warmup,
+                    "job_bytes": used_bytes,
+                    "wall_seconds": wall_seconds,
+                    "cpu_seconds": cpu_seconds,
+                    "cpu_percent": 100.0 * cpu_seconds / wall_seconds,
+                    "wall_mb_per_second": used_bytes / wall_seconds / 1e6,
+                    "hardware_busy_cycles": status["busy_cycles"],
+                    "hardware_mb_per_second": (
+                        used_bytes / hardware_seconds / 1e6
+                        if hardware_seconds > 0
+                        else 0.0
+                    ),
+                    "mm2s_stall_cycles": status["mm2s_stall_cycles"],
+                    "s2mm_stall_cycles": status["s2mm_stall_cycles"],
+                }
+                for key, value in (driver.last_transfer_profile or {}).items():
+                    record["profile_" + key] = value
+                records.append(record)
 
         os.makedirs(args.output_dir, exist_ok=True)
         csv_path = os.path.join(args.output_dir, "apu_dma_transport_samples.csv")
@@ -124,6 +129,11 @@ def main():
             "passes_200mbps_wall": bool(np.mean(wall_bw) >= 200.0),
             "passes_cpu_10percent": bool(np.mean(cpu) < 10.0),
         }
+        profile_keys = sorted(
+            key for key in records[0] if key.startswith("profile_")
+        )
+        for key in profile_keys:
+            summary[key + "_mean"] = float(np.mean([record[key] for record in records]))
         with open(json_path, "w", encoding="utf-8") as stream:
             json.dump(summary, stream, indent=2, sort_keys=True)
             stream.write("\n")
@@ -131,6 +141,8 @@ def main():
         print(csv_path)
         print(json_path)
     finally:
+        if rx is not None:
+            rx.freebuffer()
         tx.freebuffer()
 
 

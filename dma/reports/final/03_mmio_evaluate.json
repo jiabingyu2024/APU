@@ -1,0 +1,20 @@
+{
+  "average_inference_ms": 2478.2418060302734,
+  "samples": 100,
+  "start_index": 0,
+  "top1_correct": 21,
+  "top1_percent": 21.0,
+  "top5_correct": 95,
+  "top5_percent": 95.0,
+  "transfer": {
+    "cpu_percent": 100.01226912407603,
+    "cpu_seconds": 242.31341167399987,
+    "pl_to_ps_bytes": 212872,
+    "ps_to_pl_bytes": 37600000,
+    "total_bytes": 37812872,
+    "transport": "legacy_mmio_ahb",
+    "wait_mode": "polling",
+    "wall_mbps": 0.15606858508954827,
+    "wall_seconds": 242.28368558799912
+  }
+}

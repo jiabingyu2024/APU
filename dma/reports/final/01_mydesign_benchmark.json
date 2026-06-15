@@ -1,0 +1,98 @@
+{
+  "bitstream": "/home/xilinx/jupyter_notebooks/APUdma/apuYjb/myDesign.bit",
+  "ip_name": "APU_0",
+  "iterations": 5,
+  "schema_version": 1,
+  "summaries": [
+    {
+      "cpu_percent_mean": 98.56443787263565,
+      "direction": "pl_to_ps",
+      "iterations": 5,
+      "mbps_max": 0.2321506947854413,
+      "mbps_mean": 0.22998749675431912,
+      "mbps_min": 0.22672704456007112,
+      "mbps_p50": 0.2309462572184991,
+      "mbps_p95": 0.23201643350620405,
+      "size_bytes": 256
+    },
+    {
+      "cpu_percent_mean": 93.04934192675474,
+      "direction": "pl_to_ps",
+      "iterations": 5,
+      "mbps_max": 0.23360339164537444,
+      "mbps_mean": 0.2159303559119435,
+      "mbps_min": 0.16522303577651828,
+      "mbps_p50": 0.2268980554181642,
+      "mbps_p95": 0.23328759271878333,
+      "size_bytes": 1024
+    },
+    {
+      "cpu_percent_mean": 99.89516422587198,
+      "direction": "pl_to_ps",
+      "iterations": 5,
+      "mbps_max": 0.23670688025577863,
+      "mbps_mean": 0.2362741646453074,
+      "mbps_min": 0.2358407865122309,
+      "mbps_p50": 0.23630486119407942,
+      "mbps_p95": 0.23665348756123458,
+      "size_bytes": 4096
+    },
+    {
+      "cpu_percent_mean": 99.33391520958423,
+      "direction": "pl_to_ps",
+      "iterations": 5,
+      "mbps_max": 0.2365522008513369,
+      "mbps_mean": 0.23230384614135086,
+      "mbps_min": 0.22508875783848473,
+      "mbps_p50": 0.234751551362357,
+      "mbps_p95": 0.23626006981265568,
+      "size_bytes": 8192
+    },
+    {
+      "cpu_percent_mean": 95.65436209083718,
+      "direction": "ps_to_pl",
+      "iterations": 5,
+      "mbps_max": 0.6261939882654829,
+      "mbps_mean": 0.6015008565252249,
+      "mbps_min": 0.5207771789536939,
+      "mbps_p50": 0.622648346806356,
+      "mbps_p95": 0.625819230235404,
+      "size_bytes": 256
+    },
+    {
+      "cpu_percent_mean": 94.27870027862966,
+      "direction": "ps_to_pl",
+      "iterations": 5,
+      "mbps_max": 0.7649154781881169,
+      "mbps_mean": 0.7073107060331582,
+      "mbps_min": 0.5664255670394549,
+      "mbps_p50": 0.743526275021723,
+      "mbps_p95": 0.7631291849870486,
+      "size_bytes": 1024
+    },
+    {
+      "cpu_percent_mean": 99.59964217042388,
+      "direction": "ps_to_pl",
+      "iterations": 5,
+      "mbps_max": 0.7917045751297029,
+      "mbps_mean": 0.784962329002323,
+      "mbps_min": 0.7733297888917614,
+      "mbps_p50": 0.7867853861792257,
+      "mbps_p95": 0.7914491582736746,
+      "size_bytes": 4096
+    },
+    {
+      "cpu_percent_mean": 99.80386819427916,
+      "direction": "ps_to_pl",
+      "iterations": 5,
+      "mbps_max": 0.79236328928226,
+      "mbps_mean": 0.7874843381174699,
+      "mbps_min": 0.7794960565548733,
+      "mbps_p50": 0.788024717724601,
+      "mbps_p95": 0.7919475043128155,
+      "size_bytes": 8192
+    }
+  ],
+  "transport": "PS M_AXI_GP0 -> AXI-to-AHB-Lite bridge -> APU_0",
+  "warmup": 1
+}

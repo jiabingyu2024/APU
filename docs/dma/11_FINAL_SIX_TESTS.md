@@ -13,7 +13,7 @@ python3 dma/final_tests/02_mydesign_inference.py
 python3 dma/final_tests/03_mydesign_evaluate.py --samples 100
 
 python3 dma/final_tests/04_apu_dma_benchmark.py \
-  --clock-mhz 25 --repeats 256 --warmup 1 --iterations 5
+  --clock-mhz 50 --repeats 256 --warmup 1 --iterations 5
 python3 dma/final_tests/05_apu_dma_inference.py
 python3 dma/final_tests/06_apu_dma_evaluate.py --samples 100
 ```

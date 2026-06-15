@@ -1,0 +1,32 @@
+{
+  "alignment": "apuYjb/image/cifar10_test_image.jpg + apuYjb/model_best.pth.tar + apuYjb/param",
+  "apu_input_sha256": "698df7862645dd6b34f31c15865550aa695ea8fe69e3d5cfc6bb8b4a012e6dce",
+  "apu_output_sha256": "a236f489b1f93b1df7d9f801b436f70b644ab3874329ff13b2f979b7fd97c345",
+  "class": "plane",
+  "image": "/home/xilinx/jupyter_notebooks/APUdma/apuYjb/image/cifar10_test_image.jpg",
+  "inference_ms": 2586.0159397125244,
+  "logsoftmax": [
+    -0.10214178264141083,
+    -9.408526420593262,
+    -15.653599739074707,
+    -6.720620632171631,
+    -2.3453993797302246,
+    -21.873138427734375,
+    -16.09051513671875,
+    -15.70532512664795,
+    -13.545012474060059,
+    -16.032819747924805
+  ],
+  "prediction": 0,
+  "transfer": {
+    "cpu_percent": 98.71720888564379,
+    "cpu_seconds": 2.488446209000001,
+    "pl_to_ps_bytes": 2128,
+    "ps_to_pl_bytes": 376000,
+    "total_bytes": 378128,
+    "transport": "legacy_mmio_ahb",
+    "wait_mode": "polling",
+    "wall_mbps": 0.1500042099624533,
+    "wall_seconds": 2.5207825839997895
+  }
+}

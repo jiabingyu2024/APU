@@ -1,0 +1,21 @@
+{
+  "average_inference_ms": 108.8185453414917,
+  "samples": 100,
+  "start_index": 0,
+  "top1_correct": 21,
+  "top1_percent": 21.0,
+  "top5_correct": 95,
+  "top5_percent": 95.0,
+  "transfer": {
+    "cpu_percent": 72.25400818177562,
+    "cpu_seconds": 3.718354472000005,
+    "hardware_mbps": 63.293530588181646,
+    "pl_to_ps_bytes": 211200,
+    "ps_to_pl_bytes": 38652800,
+    "total_bytes": 38864000,
+    "transport": "apu_dma",
+    "wait_mode": "interrupt",
+    "wall_mbps": 7.551942116121423,
+    "wall_seconds": 5.1462258849992395
+  }
+}

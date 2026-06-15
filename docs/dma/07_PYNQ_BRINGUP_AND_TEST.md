@@ -135,6 +135,12 @@ dma/reports/raw/apu_dma_transport_samples.csv
 dma/reports/raw/apu_dma_transport_summary.json
 ```
 
+最终六项测试还会写：
+
+```text
+dma/reports/final/04_apu_dma_benchmark.json
+```
+
 `--allow-polling` 只能用于诊断，不能用于 CPU<10% 验收。
 
 ## 7. 完整网络 DMA wrapper
@@ -177,7 +183,70 @@ dma/reports/raw/mmio_transfer_samples.csv
 dma/reports/raw/mmio_transfer_summary.json
 ```
 
-## 9. 当前不维护 loopback
+最终六项测试还会写：
+
+```text
+dma/reports/final/01_mydesign_benchmark.json
+dma/reports/final/02_mydesign_inference.json
+dma/reports/final/03_mydesign_evaluate.json
+dma/reports/final/04_apu_dma_benchmark.json
+dma/reports/final/05_apu_dma_inference.json
+dma/reports/final/06_apu_dma_evaluate.json
+```
+
+## 9. 导出 report 到 PC
+
+板上报告目录：
+
+```text
+/home/xilinx/jupyter_notebooks/APUdma/dma/reports
+```
+
+推荐先在板子上打包，避免逐个文件下载：
+
+```bash
+cd /home/xilinx/jupyter_notebooks/APUdma
+tar -czf dma_reports.tar.gz dma/reports
+ls -lh dma_reports.tar.gz
+```
+
+在 PC PowerShell 中拉回本地仓库：
+
+```powershell
+scp xilinx@192.168.137.2:/home/xilinx/jupyter_notebooks/APUdma/dma_reports.tar.gz .\dma\reports\dma_reports.tar.gz
+```
+
+如果当前以 `root` 登录板子，也可以用：
+
+```powershell
+scp root@192.168.137.2:/home/xilinx/jupyter_notebooks/APUdma/dma_reports.tar.gz .\dma\reports\dma_reports.tar.gz
+```
+
+解压到本地：
+
+```powershell
+tar -xzf .\dma\reports\dma_reports.tar.gz -C .
+```
+
+如果使用 MobaXterm，直接在左侧 SFTP 面板进入：
+
+```text
+/home/xilinx/jupyter_notebooks/APUdma
+```
+
+下载 `dma_reports.tar.gz` 到本地仓库根目录后解压即可。
+
+报告验收主看：
+
+```text
+dma/reports/final/04_apu_dma_benchmark.json
+```
+
+其中 `wall_mbps_mean >= 200` 对应传输带宽要求，`cpu_percent_mean < 10`
+对应 CPU 占用率要求。`03/06` 是端到端应用级对比，不作为 200 MB/s
+传输带宽主判据。
+
+## 10. 当前不维护 loopback
 
 当前仓库没有 `dma/overlay/loopback/apu_dma_loopback.bit`，也不再维护独立 loopback Tcl。
 不要再执行旧的 `test_dma_loopback.py` 命令。

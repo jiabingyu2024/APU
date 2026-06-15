@@ -1,0 +1,35 @@
+{
+  "alignment": "apuYjb/image/cifar10_test_image.jpg + apuYjb/model_best.pth.tar + apuYjb/param",
+  "apu_input_sha256": "698df7862645dd6b34f31c15865550aa695ea8fe69e3d5cfc6bb8b4a012e6dce",
+  "apu_output_sha256": "a236f489b1f93b1df7d9f801b436f70b644ab3874329ff13b2f979b7fd97c345",
+  "class": "plane",
+  "image": "/home/xilinx/jupyter_notebooks/APUdma/apuYjb/image/cifar10_test_image.jpg",
+  "inference_ms": 146.97551727294922,
+  "logsoftmax": [
+    -0.10214178264141083,
+    -9.408526420593262,
+    -15.653599739074707,
+    -6.720620632171631,
+    -2.3453993797302246,
+    -21.873138427734375,
+    -16.09051513671875,
+    -15.70532512664795,
+    -13.545012474060059,
+    -16.032819747924805
+  ],
+  "prediction": 0,
+  "transfer": {
+    "busy_cycles": 153507,
+    "clock_mhz": 25.0,
+    "cpu_percent": 71.84424496857193,
+    "cpu_seconds": 0.03792434400000033,
+    "hardware_mbps": 63.29353058818165,
+    "pl_to_ps_bytes": 2112,
+    "ps_to_pl_bytes": 386528,
+    "total_bytes": 388640,
+    "transport": "apu_dma",
+    "wait_mode": "interrupt",
+    "wall_mbps": 7.362433840539351,
+    "wall_seconds": 0.052786892000312946
+  }
+}
