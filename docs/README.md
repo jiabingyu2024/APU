@@ -1,126 +1,109 @@
-# APU 文档索引
+# APU Documentation Index
 
-本页按用途整理 `docs/` 下的设计、仿真和历史文档。第一次阅读建议先看“推荐阅读
-路径”；定位具体问题时可直接使用后面的分类索引。
+本文档是 `docs/` 的入口。当前有效主线是：
 
-## 文档权威级别
+1. 基础 APU ASIC：`rtl/`、`tb/`、`data/`
+2. 旧版 PYNQ MMIO/AHB 基线：`apuYjb/`
+3. 最终 AXI-Stream + AXI-DMA 扩展：`dma/`
 
-发生描述冲突时，按以下优先级判断：
+`soc`、`fpga`、`explore` 相关文档已经移动到 `docs/archive/`，只作为历史探索记录，不作为最终验收路线。
 
-1. [`design/final/`](design/final/README.md)：当前已验证 RTL 的规范基线。
-2. 当前 `rtl/`、`tb/` 和 `scripts/compare_outputs.py` 的实际行为。
-3. `design/` 下的模块专题和阶段性设计总结。
-4. `archive/` 下的历史审查、故障定位和修复记录。
+## Recommended Reading
 
-`archive/` 中部分判断描述的是修复前代码，不能直接作为当前实现合同。
-
-## 推荐阅读路径
-
-### 快速理解项目
-
-1. [项目根 README](../README.md)：目录结构、环境、编译和标准回归。
-2. [最终设计文档总览](design/final/README.md)：设计边界、文档顺序和验收状态。
-3. [系统架构](design/final/01_SYSTEM_ARCHITECTURE.md)：整机模块层次和主数据通路。
-4. [编程模型](design/final/02_PROGRAMMING_MODEL.md)：AHB 地址空间、RAM 控制权和启动完成协议。
-5. [验证规范](design/final/08_VERIFICATION_AND_REBUILD.md)：testbench 流程和 bit-exact 验收标准。
-
-### 深入理解 Ctrl 与数据通路
-
-1. [指令格式与网络映射](design/final/03_INSTRUCTION_AND_NETWORK.md)
-2. [数据表示与存储布局](design/final/04_DATA_AND_MEMORY_LAYOUT.md)
-3. [控制微架构与周期时序](design/final/05_CONTROL_AND_TIMING.md)
-4. [Ctrl 与 InBuf 详细设计](design/Ctrl_InBuf_Design.md)
-5. [Residual 路径专题](design/final/07_RESIDUAL_PATH.md)
-
-## 最终设计基线
-
-| 文档 | 简介 |
+| 目标 | 文档 |
 | --- | --- |
-| [总索引](design/final/README.md) | 最终文档定位、推荐顺序、验证状态和适用边界 |
-| [01 系统架构](design/final/01_SYSTEM_ARCHITECTURE.md) | 顶层层次、参数、时钟复位、运行阶段和整机数据流 |
-| [02 编程模型与外部接口](design/final/02_PROGRAMMING_MODEL.md) | AHB 协议约束、地址空间、32/64 bit 适配、启动与完成 |
-| [03 指令格式与网络映射](design/final/03_INSTRUCTION_AND_NETWORK.md) | 32 bit 指令字段、Ctrl 派生量和已验证网络指令 |
-| [04 数据表示与存储布局](design/final/04_DATA_AND_MEMORY_LAYOUT.md) | 二值编码、Feature/Weight/BN 布局及通道组顺序 |
-| [05 控制微架构与周期时序](design/final/05_CONTROL_AND_TIMING.md) | Ctrl 状态机、循环计数、地址生成和逐拍流水 |
-| [06 RTL 模块合同](design/final/06_MODULE_CONTRACTS.md) | Top、AHB、存储、控制、计算和 SIMD 的接口行为合同 |
-| [07 Residual 路径](design/final/07_RESIDUAL_PATH.md) | 主支路、shortcut、双 SRAM 角色和 InBuf replay |
-| [08 验证规范与回归](design/final/08_VERIFICATION_AND_REBUILD.md) | 标准命令、testbench 流程、断言和 RTL 重建验收 |
-| [09 勘误与风险](design/final/09_ERRATA_AND_RISKS.md) | 已修问题、历史误判、剩余风险和结论适用边界 |
-| [10 RTL 重建蓝图](design/final/10_RTL_REBUILD_BLUEPRINT.md) | 从规范重新实现 RTL 的顺序、接口骨架和阶段目标 |
+| 快速理解项目结构 | [../README.md](../README.md) |
+| 查看整理计划 | [PROJECT_CLEANUP_PLAN.md](PROJECT_CLEANUP_PLAN.md) |
+| 理解基础 APU RTL | [design/final/README.md](design/final/README.md) |
+| 理解旧版 PYNQ MMIO/AHB 基线 | [apuYjb/README.md](apuYjb/README.md) |
+| 理解最终 DMA 支线 | [dma/README.md](dma/README.md) |
+| 跑最终六个测试 | [dma/11_FINAL_SIX_TESTS.md](dma/11_FINAL_SIX_TESTS.md) |
+| 判断性能指标是否满足要求 | [dma/08_PERFORMANCE_ACCEPTANCE.md](dma/08_PERFORMANCE_ACCEPTANCE.md) |
+| 在 PYNQ 上运行和导出报告 | [dma/07_PYNQ_BRINGUP_AND_TEST.md](dma/07_PYNQ_BRINGUP_AND_TEST.md) |
+| 用 Vivado 生成 DMA bit/hwh | [dma/06_VIVADO_GUI_BUILD_AND_EXPORT.md](dma/06_VIVADO_GUI_BUILD_AND_EXPORT.md) |
 
-## 设计专题
+## Current Documents
 
-| 文档 | 简介 | 使用场景 |
-| --- | --- | --- |
-| [APU 总体设计](design/APU_DESIGN.md) | APU 目标、顶层结构、AHB 接口和主要模块 | 建立较完整的系统背景 |
-| [dev1 普通卷积设计总结](design/APU_DESIGN_DEV1_CONV.md) | 普通卷积阶段的数据流、并行度和阶段性验证结论 | 追溯普通卷积实现演进 |
-| [Ctrl 与 InBuf 详细设计](design/Ctrl_InBuf_Design.md) | 英文变量释义，H/W/Cin/Cout 循环，权重映射和延迟控制 | 阅读或修改 `Ctrl.sv`、`InBuf.sv` |
-| [AHB RAM_SEL 128/129](design/AHB_RAM_SEL_128_129.md) | ActSRAM 与 OutSRAM 的 AHB 片选规则 | 编写 AHB 搬运或 TB 代码 |
+### Base APU Design
 
-## 仿真文档
-
-| 文档 | 简介 |
+| 文档 | 内容 |
 | --- | --- |
-| [tb_top_student.sv 详解](sim/tb_top_student详解.md) | testbench 的装载、发指令、启动、轮询和结果导出流程 |
+| [design/final/README.md](design/final/README.md) | 基础 APU RTL 文档入口 |
+| [design/final/01_SYSTEM_ARCHITECTURE.md](design/final/01_SYSTEM_ARCHITECTURE.md) | 系统结构、模块层次和运行阶段 |
+| [design/final/02_PROGRAMMING_MODEL.md](design/final/02_PROGRAMMING_MODEL.md) | AHB 地址空间、RAM 控制权和启动完成协议 |
+| [design/final/03_INSTRUCTION_AND_NETWORK.md](design/final/03_INSTRUCTION_AND_NETWORK.md) | 指令格式和网络映射 |
+| [design/final/04_DATA_AND_MEMORY_LAYOUT.md](design/final/04_DATA_AND_MEMORY_LAYOUT.md) | 特征、权重、BN 参数和通道组布局 |
+| [design/final/05_CONTROL_AND_TIMING.md](design/final/05_CONTROL_AND_TIMING.md) | Ctrl 状态机和周期时序 |
+| [design/final/06_MODULE_CONTRACTS.md](design/final/06_MODULE_CONTRACTS.md) | RTL 模块接口合同 |
+| [design/final/07_RESIDUAL_PATH.md](design/final/07_RESIDUAL_PATH.md) | residual/shortcut 数据路径 |
+| [design/final/08_VERIFICATION_AND_REBUILD.md](design/final/08_VERIFICATION_AND_REBUILD.md) | 仿真、回归和 bit-exact 验证 |
+| [design/final/09_ERRATA_AND_RISKS.md](design/final/09_ERRATA_AND_RISKS.md) | 已知问题、历史误判和剩余风险 |
+| [design/final/10_RTL_REBUILD_BLUEPRINT.md](design/final/10_RTL_REBUILD_BLUEPRINT.md) | 从文档重建 RTL 的蓝图 |
 
-运行方式和输出检查点另见项目根目录的[快速上手](../README.md#快速上手)。
+### Design Notes
 
-## 探索与进阶方案
-
-| 文档 | 简介 |
+| 文档 | 内容 |
 | --- | --- |
-| [DMA 高性能数据流赛道](dma/README.md) | 基于 `apuYjb` 的 AXI-Stream、AXI DMA、零拷贝和性能验收路线 |
-| [RISC-V 全自主 SoC + APU 实施指南](explore/RISCV_SOC_APU_PROJECT_GUIDE.md) | 面向大三课程项目的 PicoRV32 选型、SoC 架构、总线桥、裸机工具链、模型搬运、FPGA 上板和分阶段验收路线 |
-| [PicoRV32 克隆后学习与接入 APU](explore/PICORV32_CLONE_TO_APU_INTEGRATION.md) | 克隆后的阅读顺序、官方测试、第三方 IP 管理、CPU+BRAM 最小系统、native 总线、AHB bridge 和逐步接入现有 APU 的操作手册 |
+| [design/APU_DESIGN.md](design/APU_DESIGN.md) | APU 总体设计背景 |
+| [design/APU_DESIGN_DEV1_CONV.md](design/APU_DESIGN_DEV1_CONV.md) | 普通卷积阶段设计记录 |
+| [design/Ctrl_InBuf_Design.md](design/Ctrl_InBuf_Design.md) | Ctrl/InBuf 变量、地址和 residual replay 说明 |
+| [design/AHB_RAM_SEL_128_129.md](design/AHB_RAM_SEL_128_129.md) | AHB RAM 片选专题 |
+| [design/sta/APU_50MHZ_FIRST_STAGE_IMPLEMENTATION.md](design/sta/APU_50MHZ_FIRST_STAGE_IMPLEMENTATION.md) | 50 MHz 初步实现记录 |
+| [design/sta/APU_50MHZ_TIMING_REVIEW.md](design/sta/APU_50MHZ_TIMING_REVIEW.md) | 50 MHz 时序审查 |
 
-## RISC-V SoC 实施记录
+### PYNQ MMIO Baseline
 
-| 文档 | 简介 |
+| 文档 | 内容 |
 | --- | --- |
-| [SoC 文档总索引](soc/README.md) | 当前完成度、运行入口和各阶段文档导航 |
-| [阶段 1 规格与地址空间](soc/01_SOC_SPEC.md) | PicoRV32 配置、内存映射、寄存器和验收条件 |
-| [阶段 1 RTL 架构与时序](soc/02_RTL_ARCHITECTURE.md) | native 总线、模块职责、正常/异常事务时序和 APU 接入边界 |
-| [阶段 1 仿真记录](soc/03_STAGE1_BRINGUP_LOG.md) | 工具版本、构建产物、测试日志、问题修复和阶段结论 |
-| [阶段 2 APU 总线桥](soc/04_STAGE2_APU_BRIDGE.md) | PicoRV32 native 到 APU AHB 的状态机、地址转换、MMIO 驱动和回归结果 |
-| [阶段 3 最小真实计算](soc/05_STAGE3_MINIMAL_APU_RUN.md) | RISC-V 启动 APU、轮询 CPL、尾写 fence 和确定性卷积检查 |
-| [完整网络预上板](soc/06_FULL_NETWORK_PREBOARD.md) | 模型 ROM、12-op 参数映射、完整推理、golden 对拍和 UART 顶层 |
-| [Vivado/上板剩余清单](soc/07_VIVADO_BOARD_REMAINING.md) | 器件、XDC、时钟、资源、时序、ARM PS 禁用和板级验收 |
+| [apuYjb/README.md](apuYjb/README.md) | 旧版 `myDesign.bit/.hwh` 上板基线入口 |
+| [apuYjb/01_ARCHITECTURE.md](apuYjb/01_ARCHITECTURE.md) | PYNQ MMIO 基线架构 |
+| [apuYjb/02_ASSET_MANIFEST.md](apuYjb/02_ASSET_MANIFEST.md) | bit/hwh、模型、图片、参数清单 |
+| [apuYjb/03_OVERLAY_AND_MMIO.md](apuYjb/03_OVERLAY_AND_MMIO.md) | overlay 与 MMIO 访问方式 |
+| [apuYjb/04_DRIVER_AND_NETWORK_FLOW.md](apuYjb/04_DRIVER_AND_NETWORK_FLOW.md) | Python driver 和网络执行流程 |
+| [apuYjb/05_DEPLOY_AND_RUN.md](apuYjb/05_DEPLOY_AND_RUN.md) | PYNQ 部署和运行 |
+| [apuYjb/06_ACCURACY_AND_DEBUG.md](apuYjb/06_ACCURACY_AND_DEBUG.md) | 准确率与调试 |
+| [apuYjb/07_BOUNDARY_AND_KNOWN_RISKS.md](apuYjb/07_BOUNDARY_AND_KNOWN_RISKS.md) | 边界和风险 |
 
-## FPGA 上板
+### Final DMA Branch
 
-| 文档 | 简介 |
+| 文档 | 内容 |
 | --- | --- |
-| [PYNQ-Z2 上板索引](fpga/README.md) | 上板文档顺序和配套工程文件入口 |
-| [Vivado 工程与 Bitstream](fpga/01_VIVADO_PROJECT_AND_BITSTREAM.md) | 工程创建、源文件、初始化文件、约束、资源和时序检查 |
-| [PYNQ 下载与 C 程序验证](fpga/02_PYNQ_DEPLOY_AND_C_PROGRAM_VERIFY.md) | PYNQ/JTAG 下载、PL UART、LED 和 RISC-V 执行证据 |
-| [验收与故障排查](fpga/03_ACCEPTANCE_AND_TROUBLESHOOTING.md) | ARM 边界、BRAM/时序、UART 和 trap 排查 |
-| [PYNQ-Z2 资源占用初评](fpga/04_RESOURCE_ESTIMATE.md) | BRAM、LUTRAM、计算阵列、FF 和综合推断风险估算 |
-| [PYNQ-Z2 管脚参考](fpga/PIN.md) | 时钟、按钮、LED、Pmod 和 PS MIO 管脚 |
+| [dma/README.md](dma/README.md) | DMA 文档入口 |
+| [dma/00_CURRENT_STATE_AND_WORK_PLAN.md](dma/00_CURRENT_STATE_AND_WORK_PLAN.md) | 当前状态和工作计划 |
+| [dma/01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md](dma/01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md) | 文件和操作入口 |
+| [dma/02_STAGE_A_BASELINE.md](dma/02_STAGE_A_BASELINE.md) | 旧 MMIO 基线 |
+| [dma/04_STREAM_PACKET_PROTOCOL.md](dma/04_STREAM_PACKET_PROTOCOL.md) | AXI-Stream packet 协议 |
+| [dma/05_RTL_IMPLEMENTATION_REVIEW.md](dma/05_RTL_IMPLEMENTATION_REVIEW.md) | DMA RTL 检查 |
+| [dma/06_VIVADO_GUI_BUILD_AND_EXPORT.md](dma/06_VIVADO_GUI_BUILD_AND_EXPORT.md) | Vivado 生成与导出 |
+| [dma/07_PYNQ_BRINGUP_AND_TEST.md](dma/07_PYNQ_BRINGUP_AND_TEST.md) | PYNQ 操作、测试和报告导出 |
+| [dma/08_PERFORMANCE_ACCEPTANCE.md](dma/08_PERFORMANCE_ACCEPTANCE.md) | 性能验收口径 |
+| [dma/09_FULL_NETWORK_DMA_JOB.md](dma/09_FULL_NETWORK_DMA_JOB.md) | 完整网络 DMA job |
+| [dma/10_BOARD_RUN_SUMMARY.md](dma/10_BOARD_RUN_SUMMARY.md) | 板上运行结果汇总 |
+| [dma/11_FINAL_SIX_TESTS.md](dma/11_FINAL_SIX_TESTS.md) | 六个最终测试 |
+| [dma/sw/README.md](dma/sw/README.md) | 软件 golden、硬件对比和 InBuf 修复记录 |
 
-## 历史问题与修复记录
+### Simulation
 
-以下文档用于追溯 bug 现象、定位证据和修复过程，不代表当前规范：
-
-| 文档 | 记录内容 |
+| 文档 | 内容 |
 | --- | --- |
-| [CTRL 接口与残差适配](archive/CTRL.md) | 早期 Ctrl 接口变更和 residual 适配记录 |
-| [RTL Bug 审查与修复](archive/RTL_BUG_REVIEW_AND_FIX_LOG.md) | 多模块集成问题总表和修复记录 |
-| [Layer1.0 输出不一致](archive/LAYER1_0_OUTPUT_MISMATCH_REVIEW.md) | Layer1.0 mismatch 初始审查 |
-| [Layer1.0 启动后近似全零](archive/LAYER1_0_ALL_ZERO_AFTER_RUN_REVIEW.md) | 全零现象和波形证据 |
-| [dev1 Layer1.0 部分不一致](archive/DEV1_LAYER1_0_PARTIAL_MISMATCH_REVIEW.md) | SRAM 写入与 TB 读回问题定位 |
-| [dev1 Layer2 residual mismatch](archive/DEV1_LAYER2_RESIDUAL_MISMATCH_REVIEW.md) | Layer2 残差输出不一致审查 |
-| [dev1 Layer2 residual 修复](archive/DEV1_LAYER2_RESIDUAL_FIX_LOG.md) | Layer2 残差时序和 RTL 修复过程 |
-| [dev1 Layer3 mismatch](archive/DEV1_LAYER3_OUTPUT_MISMATCH_REVIEW.md) | Layer3 输出问题和正确执行方式 |
-| [dev1 Layer3 修复](archive/DEV1_LAYER3_OUTPUT_FIX_LOG.md) | Layer3 RTL 修复及结果 |
-| [仿真输出目录整理](archive/SIM_OUTPUT_PATH_CLEANUP.md) | 输出统一迁移到 `build/sim/` 的记录 |
+| [sim/tb_top_student详解.md](sim/tb_top_student详解.md) | 基础 APU testbench 说明 |
 
-## 按问题跳转
+## Archive
 
-| 我想解决的问题 | 入口 |
+归档文档保留用于复查，不作为当前运行入口。
+
+| 路径 | 内容 |
 | --- | --- |
-| APU 为什么不结束或 completion 不推进 | [控制与时序](design/final/05_CONTROL_AND_TIMING.md)、[验证规范](design/final/08_VERIFICATION_AND_REBUILD.md) |
-| 权重地址为何这样递增 | [数据与存储布局](design/final/04_DATA_AND_MEMORY_LAYOUT.md)、[Ctrl/InBuf 设计](design/Ctrl_InBuf_Design.md) |
-| residual 为什么需要 replay | [Residual 路径](design/final/07_RESIDUAL_PATH.md)、[Ctrl/InBuf 设计](design/Ctrl_InBuf_Design.md) |
-| AHB 如何选择 ActSRAM/OutSRAM | [编程模型](design/final/02_PROGRAMMING_MODEL.md)、[RAM_SEL 专题](design/AHB_RAM_SEL_128_129.md) |
-| 修改一个 RTL 模块前要确认什么 | [模块合同](design/final/06_MODULE_CONTRACTS.md)、[勘误与风险](design/final/09_ERRATA_AND_RISKS.md) |
-| 如何重新实现或重构 RTL | [RTL 重建蓝图](design/final/10_RTL_REBUILD_BLUEPRINT.md) |
+| [archive/README.md](archive/README.md) | 归档索引 |
+| [archive/](archive/) | 历史 bug 定位、RTL 修复、旧评审记录 |
+| [archive/soc/README.md](archive/soc/README.md) | 已弃用 SoC 支线文档 |
+| [archive/fpga/README.md](archive/fpga/README.md) | 已弃用早期 FPGA/PL-only 文档 |
+| [archive/explore/](archive/explore/) | PicoRV32/SoC 探索笔记 |
+| [archive/reference/](archive/reference/) | 外部手册和参考资料 |
+
+## Notes
+
+- 当前最终报告以 `dma/final_tests/` 和 `docs/dma/` 为准。
+- `soc/`、`fpga/`、`third_party/` 源码目录仍保留，不删除。
+- 修改 RTL 或 Vivado Tcl 后需要重新生成 bit/hwh；只修改 Python 和文档不需要重新综合。
+- Vivado 工程路径尽量保持短路径，避免路径过长导致构建失败。

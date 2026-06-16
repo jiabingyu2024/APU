@@ -1,5 +1,11 @@
 # RISC-V SoC + APU 实施文档索引
 
+> 状态：已归档，当前不作为最终交付或验收路线。
+>
+> 这条支线记录 PicoRV32 + APU 的 SoC 探索过程。项目最终路线已经切换到
+> `dma/` 的 AXI-Stream + AXI-DMA 方案；本目录仅用于复查历史设计、失败原因和中间验证证据。
+> 不建议按本文档重新运行当前项目。
+
 本目录记录从独立 APU 演进到 PicoRV32 控制的全自主 PL SoC 的设计决策、RTL 接口、
 固件流程和每阶段验证证据。当前只覆盖无需 Vivado 的 RTL 仿真工作，不包含上板、XDC、
 时钟 IP、bitstream 和 ARM PS 板级控制流程。
@@ -20,7 +26,7 @@
 
 - [../explore/RISCV_SOC_APU_PROJECT_GUIDE.md](../explore/RISCV_SOC_APU_PROJECT_GUIDE.md)
 - [../explore/PICORV32_CLONE_TO_APU_INTEGRATION.md](../explore/PICORV32_CLONE_TO_APU_INTEGRATION.md)
-- [../design/final/02_PROGRAMMING_MODEL.md](../design/final/02_PROGRAMMING_MODEL.md)
+- [../../design/final/02_PROGRAMMING_MODEL.md](../../design/final/02_PROGRAMMING_MODEL.md)
 
 ## 当前完成度
 

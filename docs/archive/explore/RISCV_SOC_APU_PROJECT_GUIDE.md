@@ -1296,7 +1296,7 @@ C 程序。
 - Rocket Chip 官方仓库：<https://github.com/chipsalliance/rocket-chip>
 - RISC-V GNU Toolchain：<https://github.com/riscv-collab/riscv-gnu-toolchain>
 - AMD Zynq-7000 TRM UG585：<https://docs.amd.com/r/en-US/ug585-zynq-7000-SoC-TRM>
-- 当前 APU 最终设计基线：[../design/final/README.md](../design/final/README.md)
-- APU 编程模型：[../design/final/02_PROGRAMMING_MODEL.md](../design/final/02_PROGRAMMING_MODEL.md)
-- APU 验证规范：[../design/final/08_VERIFICATION_AND_REBUILD.md](../design/final/08_VERIFICATION_AND_REBUILD.md)
+- 当前 APU 最终设计基线：[../../design/final/README.md](../../design/final/README.md)
+- APU 编程模型：[../../design/final/02_PROGRAMMING_MODEL.md](../../design/final/02_PROGRAMMING_MODEL.md)
+- APU 验证规范：[../../design/final/08_VERIFICATION_AND_REBUILD.md](../../design/final/08_VERIFICATION_AND_REBUILD.md)
 

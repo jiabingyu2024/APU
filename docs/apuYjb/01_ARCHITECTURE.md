@@ -82,4 +82,4 @@ inference_ps.py / evaluate_cifar10_ps.py
 - 执行模型首层、池化、全连接和分类统计。
 
 因此 ARM 一旦 reset 或 clock-stop，推理链会中断。若验收条件是 ARM 完全禁用，应切换到
-[`docs/fpga/`](../fpga/README.md) 描述的纯 PL 方案，而不是修改本方案的启动步骤。
+[`docs/archive/fpga/`](../archive/fpga/README.md) 描述的纯 PL 探索方案，而不是修改本方案的启动步骤。

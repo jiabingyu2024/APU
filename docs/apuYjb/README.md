@@ -4,7 +4,8 @@
 ARM Cortex-A9 上，PS 通过 AXI GP0、AXI-to-AHB bridge 和 MMIO 控制 PL 中的 APU。
 
 > 重要边界：这套资料依赖 ARM、Linux、PYNQ 和 PyTorch，不能在 ARM reset 或停止时钟后
-> 继续运行。要求“ARM 完全禁用”时，应使用 `docs/fpga/` 中的纯 PL PicoRV32 方案。
+> 继续运行。要求“ARM 完全禁用”时，可参考已归档的
+> [`docs/archive/fpga/`](../archive/fpga/README.md) 纯 PL PicoRV32 探索方案；该方案不再作为当前最终验收路线。
 
 ## 建议阅读顺序
 

@@ -1,5 +1,10 @@
 # FPGA 上板文档索引
 
+> 状态：已归档，当前不作为最终交付或验收路线。
+>
+> 这条支线记录早期 PL-only/PYNQ-Z2 上板尝试。项目最终上板和性能验收入口已经切换到
+> `dma/` 与 `docs/dma/`。本目录仅用于复查历史方案，不建议按本文档重新验收当前项目。
+
 目标板为 **PYNQ-Z2**，器件为 `xc7z020clg400-1`。当前方案保持 SoC 完全位于
 PL：PicoRV32、片内 RAM、模型 ROM、APU、总线和 UART 均由 RTL 实现，不实例化
 Zynq Processing System IP。

@@ -65,7 +65,7 @@ Python 停止
 
 所以不能用 `apuYjb/myDesign.bit` 完成“ARM 硬核完全禁用后仍独立分类”的验收。该目标必须
 使用 PL 内处理器或纯硬件控制器，当前仓库对应路线是
-[`docs/fpga/05_BIT_TO_ARM_DISABLED_ACCEPTANCE.md`](../fpga/05_BIT_TO_ARM_DISABLED_ACCEPTANCE.md)。
+[`docs/archive/fpga/05_BIT_TO_ARM_DISABLED_ACCEPTANCE.md`](../archive/fpga/05_BIT_TO_ARM_DISABLED_ACCEPTANCE.md)。
 
 ## 6. 正确使用原则
 

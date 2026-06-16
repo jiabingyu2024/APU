@@ -1255,9 +1255,9 @@ APU_READY=1
 
 完整协议见：
 
-- [APU 编程模型](../design/final/02_PROGRAMMING_MODEL.md)
-- [数据与存储布局](../design/final/04_DATA_AND_MEMORY_LAYOUT.md)
-- [验证与重建](../design/final/08_VERIFICATION_AND_REBUILD.md)
+- [APU 编程模型](../../design/final/02_PROGRAMMING_MODEL.md)
+- [数据与存储布局](../../design/final/04_DATA_AND_MEMORY_LAYOUT.md)
+- [验证与重建](../../design/final/08_VERIFICATION_AND_REBUILD.md)
 
 ## 15. Makefile 不要破坏原回归
 
