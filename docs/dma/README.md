@@ -8,6 +8,14 @@
 
 | 目标 | 文档 |
 | --- | --- |
+| 系统学习 DMA 支线设计 | [design/README.md](design/README.md) |
+| 分清 job/packet/header/payload 等概念 | [design/00_TERMS_JOB_PACKET_HEADER.md](design/00_TERMS_JOB_PACKET_HEADER.md) |
+| 从硬件和软件两边理解 DMA 支线 | [design/00A_HARDWARE_SOFTWARE_CO_VIEW.md](design/00A_HARDWARE_SOFTWARE_CO_VIEW.md) |
+| 从 AHB/MMIO 过渡理解 AXI/DMA | [design/01_AXI_DMA_FOUNDATION.md](design/01_AXI_DMA_FOUNDATION.md) |
+| 看完整 job 数据流 | [design/02_SYSTEM_DATA_FLOW.md](design/02_SYSTEM_DATA_FLOW.md) |
+| 学习 DMA RTL 结构 | [design/03_RTL_ARCHITECTURE.md](design/03_RTL_ARCHITECTURE.md) |
+| 学习 Vivado Block Design | [design/04_BLOCK_DESIGN.md](design/04_BLOCK_DESIGN.md) |
+| 查看硬件框图和模块归属 | [design/06_HARDWARE_BLOCK_DIAGRAM.md](design/06_HARDWARE_BLOCK_DIAGRAM.md) |
 | 了解当前 DMA 支线状态 | [00_CURRENT_STATE_AND_WORK_PLAN.md](00_CURRENT_STATE_AND_WORK_PLAN.md) |
 | 看文件入口和操作路径 | [01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md](01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md) |
 | 理解旧 MMIO/AHB 基线 | [02_STAGE_A_BASELINE.md](02_STAGE_A_BASELINE.md) |

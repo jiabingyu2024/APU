@@ -69,6 +69,15 @@
 | 文档 | 内容 |
 | --- | --- |
 | [dma/README.md](dma/README.md) | DMA 文档入口 |
+| [dma/design/README.md](dma/design/README.md) | DMA 支线学习型设计文档入口 |
+| [dma/design/00_TERMS_JOB_PACKET_HEADER.md](dma/design/00_TERMS_JOB_PACKET_HEADER.md) | job、packet、header、payload、beat、TLAST 概念解释 |
+| [dma/design/00A_HARDWARE_SOFTWARE_CO_VIEW.md](dma/design/00A_HARDWARE_SOFTWARE_CO_VIEW.md) | 从硬件 RTL 和软件 driver 双视角理解 DMA 支线 |
+| [dma/design/01_AXI_DMA_FOUNDATION.md](dma/design/01_AXI_DMA_FOUNDATION.md) | AXI-Lite、AXI4-MM、AXI-Stream、AXI DMA 基础 |
+| [dma/design/02_SYSTEM_DATA_FLOW.md](dma/design/02_SYSTEM_DATA_FLOW.md) | 从 Python job 到 DDR、DMA、RTL、APU core、response 的完整数据流 |
+| [dma/design/03_RTL_ARCHITECTURE.md](dma/design/03_RTL_ARCHITECTURE.md) | `dma/rtl/` 模块详解 |
+| [dma/design/04_BLOCK_DESIGN.md](dma/design/04_BLOCK_DESIGN.md) | Vivado block design 结构详解 |
+| [dma/design/05_REGISTERS_INTERRUPTS_AND_DEBUG.md](dma/design/05_REGISTERS_INTERRUPTS_AND_DEBUG.md) | 寄存器、中断、性能计数器和调试 |
+| [dma/design/06_HARDWARE_BLOCK_DIAGRAM.md](dma/design/06_HARDWARE_BLOCK_DIAGRAM.md) | DMA 支线硬件框图和模块归属 |
 | [dma/00_CURRENT_STATE_AND_WORK_PLAN.md](dma/00_CURRENT_STATE_AND_WORK_PLAN.md) | 当前状态和工作计划 |
 | [dma/01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md](dma/01_IMPLEMENTATION_FILE_AND_FLOW_GUIDE.md) | 文件和操作入口 |
 | [dma/02_STAGE_A_BASELINE.md](dma/02_STAGE_A_BASELINE.md) | 旧 MMIO 基线 |
