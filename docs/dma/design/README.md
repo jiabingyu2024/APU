@@ -1,5 +1,10 @@
 # APU DMA Design Notes
 
+新增重点文档：
+
+- [07_FINAL_TEST_DRIVERS_AND_METRICS.md](07_FINAL_TEST_DRIVERS_AND_METRICS.md)
+  - 解释 final tests 中旧 MMIO driver 与新 DMA driver 的 Python 调用关系，以及带宽、CPU 占用、推理时间等数字的计算方法。
+
 本目录用于学习 DMA 支线的设计，不是运行命令清单。假设读者已经知道 AHB/MMIO 的基本概念，但对 AXI、AXI-Stream、AXI DMA 和本项目 RTL 细节还不熟。
 
 建议阅读顺序：
